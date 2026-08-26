@@ -1,14 +1,14 @@
 <script>
   import { onDestroy, onMount } from 'svelte';
   import QRCode from 'qrcode';
-  import { api, ApiLỗi } from './lib/api.js';
+  import { api, ApiError } from './lib/api.js';
   import ChoicePicker from './lib/ChoicePicker.svelte';
   import { cameraStream, websocketUrl } from './lib/cameraStream.js';
   import CombinedLayoutEditor from './lib/CombinedLayoutEditor.svelte';
-  import Xác nhậnDialog from './lib/Xác nhậnDialog.svelte';
+  import ConfirmDialog from './lib/ConfirmDialog.svelte';
   import FlipToggle from './lib/FlipToggle.svelte';
   import HelpButton from './lib/HelpButton.svelte';
-  import KhóaIcon from './lib/KhóaIcon.svelte';
+  import LockIcon from './lib/LockIcon.svelte';
   import LazyImage from './lib/LazyImage.svelte';
   import NumberField from './lib/NumberField.svelte';
   import PinchZoomImage from './lib/PinchZoomImage.svelte';
@@ -44,26 +44,26 @@
   let error = '';
   let busy = false;
   let bulkAction = null;
-  let backgroundAccessXác nhận = false;
-  let confirmKhóa = null;
+  let backgroundAccessConfirm = false;
+  let confirmLock = null;
   let pin = '';
   let retrySeconds = 0;
   let settingsOpen = false;
   let selectedCamera = null;
-  let selectedĐoạn ghi = null;
+  let selectedSegment = null;
   let selectedFileName = '';
   let selectedRecordingIds = [];
   let selectionMode = false;
   let longPressState = null;
-  let suppressTiếpRecordingClick = false;
+  let suppressNextRecordingClick = false;
   let stateRevision = 0;
   let settingsDraft = {};
   let settingsDirty = false;
-  let stateLàm mớiInFlight = false;
-  let statusLàm mớiInFlight = false;
+  let stateRefreshInFlight = false;
+  let statusRefreshInFlight = false;
   let fisheyePreviewScale = 1;
   let liveCameraIndexes = cameraIndexes;
-  let đang hoàn tấtProgress = {};
+  let finalizingProgress = {};
   let finalizeSocket = null;
   let qrCanvas;
   let recordingListElement;
@@ -82,14 +82,14 @@
 
   $: document.body.classList.toggle(
     'modal-open',
-    Boolean(settingsOpen || selectedCamera || selectedĐoạn ghi || confirmKhóa || bulkAction || backgroundAccessXác nhận)
+    Boolean(settingsOpen || selectedCamera || selectedSegment || confirmLock || bulkAction || backgroundAccessConfirm)
   );
   $: settingsDirty = settingsOpen && state
-    ? comparableCài đặt(settingsDraft) !== comparableCài đặt(state.settings)
+    ? comparableSettings(settingsDraft) !== comparableSettings(state.settings)
     : false;
   $: selectionMode = selectedRecordingIds.length > 0;
   $: liveCameraIndexes = orderedCameraIndexes(state?.settings);
-  $: syncFinalizeSocket(Boolean(authenticated && state?.segments?.some((segment) => segment.đang hoàn tất)));
+  $: syncFinalizeSocket(Boolean(authenticated && state?.segments?.some((segment) => segment.finalizing)));
   $: fisheyePreviewScale =
     1 /
     Math.max(
@@ -153,7 +153,7 @@
       coveredHeight += recordingRowHeight(segments[end]);
       end += 1;
     }
-    end = Math.phút(segments.length, end + recordingWindowBuffer);
+    end = Math.min(segments.length, end + recordingWindowBuffer);
     recordingWindowStart = start;
     recordingWindowEnd = end;
     recordingTopSpacer = recordingHeightBetween(segments, 0, start);
@@ -188,20 +188,20 @@
     queueRecordingWindowUpdate();
   }
 
-  function handleRequestLỗi(requestLỗi) {
-    if (requestLỗi instanceof ApiLỗi && requestLỗi.status === 401) {
+  function handleRequestError(requestError) {
+    if (requestError instanceof ApiError && requestError.status === 401) {
       authenticated = false;
       state = null;
-      selectedĐoạn ghi = null;
+      selectedSegment = null;
       settingsOpen = false;
       error = 'Nhập PIN hiện tại hiển thị trên màn hình xe.';
-      retrySeconds = Math.max(retrySeconds, requestLỗi.retryAfterSeconds);
+      retrySeconds = Math.max(retrySeconds, requestError.retryAfterSeconds);
       return;
     }
-    if (requestLỗi instanceof ApiLỗi && requestLỗi.status === 429) {
-      retrySeconds = Math.max(1, requestLỗi.retryAfterSeconds);
+    if (requestError instanceof ApiError && requestError.status === 429) {
+      retrySeconds = Math.max(1, requestError.retryAfterSeconds);
     }
-    error = requestLỗi.message;
+    error = requestError.message;
   }
 
   async function checkAuthentication() {
@@ -215,10 +215,10 @@
       if (authenticated) {
         await refresh();
       }
-    } catch (requestLỗi) {
-      if (requestLỗi instanceof ApiLỗi && requestLỗi.status === 401) {
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
         authenticated = false;
-        handleRequestLỗi(requestLỗi);
+        handleRequestError(requestError);
       } else {
         authenticated = null;
         error = 'Kết nối máy ghi bị ngắt. Đang thử lại tự động.';
@@ -239,12 +239,12 @@
       pin = '';
       error = '';
       await refresh();
-    } catch (requestLỗi) {
-      if (requestLỗi instanceof ApiLỗi && requestLỗi.status === 401) {
-        retrySeconds = Math.max(5, requestLỗi.retryAfterSeconds);
+    } catch (requestError) {
+      if (requestError instanceof ApiError && requestError.status === 401) {
+        retrySeconds = Math.max(5, requestError.retryAfterSeconds);
         error = 'PIN sai. Thử lại khi bộ đếm về 0.';
       } else {
-        handleRequestLỗi(requestLỗi);
+        handleRequestError(requestError);
       }
     } finally {
       busy = false;
@@ -252,11 +252,11 @@
   }
 
   async function refresh() {
-    if (!authenticated || busy || stateLàm mớiInFlight) {
+    if (!authenticated || busy || stateRefreshInFlight) {
       return;
     }
     const requestRevision = stateRevision;
-    stateLàm mớiInFlight = true;
+    stateRefreshInFlight = true;
     try {
       const refreshedState = await api.getState();
       if (requestRevision !== stateRevision) {
@@ -267,32 +267,32 @@
         state.segments.some((segment) => segment.id === id && !segment.active)
       );
       error = '';
-      if (selectedĐoạn ghi) {
-        selectedĐoạn ghi =
-          state.segments.find((segment) => segment.id === selectedĐoạn ghi.id) || null;
+      if (selectedSegment) {
+        selectedSegment =
+          state.segments.find((segment) => segment.id === selectedSegment.id) || null;
         if (
-          selectedĐoạn ghi &&
-          !selectedĐoạn ghi.files.some((file) => file.name === selectedFileName)
+          selectedSegment &&
+          !selectedSegment.files.some((file) => file.name === selectedFileName)
         ) {
-          selectedFileName = preferredFile(selectedĐoạn ghi)?.name || '';
+          selectedFileName = preferredFile(selectedSegment)?.name || '';
         }
       }
-    } catch (requestLỗi) {
+    } catch (requestError) {
       if (requestRevision === stateRevision) {
-        handleRequestLỗi(requestLỗi);
+        handleRequestError(requestError);
       }
     } finally {
-      stateLàm mớiInFlight = false;
+      stateRefreshInFlight = false;
     }
   }
 
   let lastStateVersion = 0;
 
   async function refreshStatus() {
-    if (!authenticated || !state || statusLàm mớiInFlight) {
+    if (!authenticated || !state || statusRefreshInFlight) {
       return;
     }
-    statusLàm mớiInFlight = true;
+    statusRefreshInFlight = true;
     try {
       const status = await api.getStatus();
       const version = Number(status.stateVersion) || 0;
@@ -300,17 +300,17 @@
       state = { ...state, ...status };
       error = '';
       // The head unit bumps stateVersion on every recording, finalization,
-      // lock, delete, or settings change; refreshing on the cheap 1-giâyond
-      // status poll keeps the app current within about a giâyond instead of
+      // lock, delete, or settings change; refreshing on the cheap 1-second
+      // status poll keeps the app current within about a second instead of
       // waiting for the slow full-state timer.
       if (version !== lastStateVersion) {
         lastStateVersion = version;
         refresh();
       }
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
-      statusLàm mớiInFlight = false;
+      statusRefreshInFlight = false;
     }
   }
 
@@ -319,19 +319,19 @@
     try {
       state = await api.setRecording(enabled);
       error = '';
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
       busy = false;
     }
   }
 
-  function openCài đặt() {
+  function openSettings() {
     settingsDraft = { ...state.settings };
     settingsOpen = true;
   }
 
-  function updateCài đặtDraft(key, value) {
+  function updateSettingsDraft(key, value) {
     settingsDraft = { ...settingsDraft, [key]: value };
   }
 
@@ -340,7 +340,7 @@
     busy = true;
   }
 
-  function comparableCài đặt(value) {
+  function comparableSettings(value) {
     return JSON.stringify(
       Object.keys(state?.settings || {})
         .sort()
@@ -365,7 +365,7 @@
   // would cost the head unit a full serialization pass per update.
   function syncFinalizeSocket(wanted) {
     if (wanted && !finalizeSocket) {
-      const socket = new WebSocket(websocketUrl('./api/đang hoàn tất/stream'));
+      const socket = new WebSocket(websocketUrl('./api/finalizing/stream'));
       finalizeSocket = socket;
       socket.onmessage = (event) => {
         if (finalizeSocket !== socket) {
@@ -374,11 +374,11 @@
         try {
           const payload = JSON.parse(event.data);
           const next = {};
-          (payload.đang hoàn tất || []).forEach((entry) => {
+          (payload.finalizing || []).forEach((entry) => {
             next[entry.id] = entry.percent;
           });
-          const hadEntries = Object.keys(đang hoàn tấtProgress).length > 0;
-          đang hoàn tấtProgress = next;
+          const hadEntries = Object.keys(finalizingProgress).length > 0;
+          finalizingProgress = next;
           if (hadEntries && Object.keys(next).length === 0) {
             refresh();
           }
@@ -395,49 +395,49 @@
     } else if (!wanted && finalizeSocket) {
       const socket = finalizeSocket;
       finalizeSocket = null;
-      đang hoàn tấtProgress = {};
+      finalizingProgress = {};
       socket.onclose = null;
       socket.close();
     }
   }
 
   function finalizePercent(segment) {
-    const pushed = đang hoàn tấtProgress[segment.id];
+    const pushed = finalizingProgress[segment.id];
     if (typeof pushed === 'number') {
       return pushed;
     }
-    return typeof segment.đang hoàn tấtPercent === 'number'
-      ? segment.đang hoàn tấtPercent
+    return typeof segment.finalizingPercent === 'number'
+      ? segment.finalizingPercent
       : -1;
   }
 
   // Live streams carry unflipped native sensor pixels; the saved camera
   // orientation is applied here as a GPU CSS transform instead of being
   // baked into every JPEG on the head unit.
-  function flipTransformStyle(camera, currentCài đặt) {
-    if (!currentCài đặt) {
+  function flipTransformStyle(camera, currentSettings) {
+    if (!currentSettings) {
       return '';
     }
-    const x = currentCài đặt[`camera${camera}FlipNgang`] ? -1 : 1;
-    const y = currentCài đặt[`camera${camera}FlipDọc`] ? -1 : 1;
+    const x = currentSettings[`camera${camera}FlipHorizontal`] ? -1 : 1;
+    const y = currentSettings[`camera${camera}FlipVertical`] ? -1 : 1;
     return x === 1 && y === 1 ? '' : `transform: scale(${x}, ${y})`;
   }
 
   function editorPreviewStyle(camera, draft, cropScale) {
-    const x = draft[`camera${camera}FlipNgang`] ? -1 : 1;
-    const y = draft[`camera${camera}FlipDọc`] ? -1 : 1;
+    const x = draft[`camera${camera}FlipHorizontal`] ? -1 : 1;
+    const y = draft[`camera${camera}FlipVertical`] ? -1 : 1;
     return `transform: scale(${cropScale * x}, ${cropScale * y})`;
   }
 
-  function orderedCameraIndexes(currentCài đặt) {
-    if (!currentCài đặt) {
+  function orderedCameraIndexes(currentSettings) {
+    if (!currentSettings) {
       return cameraIndexes;
     }
     const order = [
-      currentCài đặt.combinedTopLeft,
-      currentCài đặt.combinedTopRight,
-      currentCài đặt.combinedBottomLeft,
-      currentCài đặt.combinedBottomRight
+      currentSettings.combinedTopLeft,
+      currentSettings.combinedTopRight,
+      currentSettings.combinedBottomLeft,
+      currentSettings.combinedBottomRight
     ].map((cameraIndex) => Number(cameraIndex) + 1);
     return order.length === cameraIndexes.length &&
       new Set(order).size === cameraIndexes.length &&
@@ -482,8 +482,8 @@
     };
   }
 
-  function openĐoạn ghi(segment) {
-    selectedĐoạn ghi = segment;
+  function openSegment(segment) {
+    selectedSegment = segment;
     selectedFileName = preferredFile(segment)?.name || '';
   }
 
@@ -510,11 +510,11 @@
       startX: event.clientX,
       startY: event.clientY,
       timer: window.setTimeout(() => {
-        suppressTiếpRecordingClick = true;
+        suppressNextRecordingClick = true;
         toggleRecordingSelection(segment);
         longPressState = null;
         window.setTimeout(() => {
-          suppressTiếpRecordingClick = false;
+          suppressNextRecordingClick = false;
         }, 350);
       }, 520)
     };
@@ -539,14 +539,14 @@
 
   function handleRecordingClick(segment) {
     clearRecordingLongPress();
-    if (suppressTiếpRecordingClick) {
-      suppressTiếpRecordingClick = false;
+    if (suppressNextRecordingClick) {
+      suppressNextRecordingClick = false;
       return;
     }
     if (selectionMode) {
       toggleRecordingSelection(segment);
     } else {
-      openĐoạn ghi(segment);
+      openSegment(segment);
     }
   }
 
@@ -576,12 +576,12 @@
     bulkAction = { type, ...actionCopy[type] };
   }
 
-  async function setSelectedBản ghiĐã khóa(ids, đã khóa) {
+  async function setSelectedRecordingsLocked(ids, locked) {
     if (ids.length === 0) {
       return;
     }
-    state = await api.setĐã khóa(ids[0], đã khóa);
-    await setSelectedBản ghiĐã khóa(ids.slice(1), đã khóa);
+    state = await api.setLocked(ids[0], locked);
+    await setSelectedRecordingsLocked(ids.slice(1), locked);
   }
 
   async function performBulkAction() {
@@ -602,61 +602,61 @@
     }
     beginStateMutation();
     try {
-      await setSelectedBản ghiĐã khóa(
+      await setSelectedRecordingsLocked(
         [...selectedRecordingIds],
         action.type === 'lock'
       );
       selectedRecordingIds = [];
       error = '';
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
       busy = false;
     }
   }
 
-  function closeĐoạn ghi() {
-    selectedĐoạn ghi = null;
+  function closeSegment() {
+    selectedSegment = null;
     selectedFileName = '';
   }
 
-  async function saveCài đặt() {
+  async function saveSettings() {
     beginStateMutation();
     try {
-      state = await api.saveCài đặt(settingsDraft);
+      state = await api.saveSettings(settingsDraft);
       settingsOpen = false;
       error = '';
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
       busy = false;
     }
   }
 
-  async function toggleKhóa(segment) {
-    const đã khóa = !segment.đã khóa;
+  async function toggleLock(segment) {
+    const locked = !segment.locked;
     beginStateMutation();
     try {
-      state = await api.setĐã khóa(segment.id, đã khóa);
-      selectedĐoạn ghi =
+      state = await api.setLocked(segment.id, locked);
+      selectedSegment =
         state.segments.find((candidate) => candidate.id === segment.id) || null;
       error = '';
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
       busy = false;
-      confirmKhóa = null;
+      confirmLock = null;
     }
   }
 
-  async function requestQuay lạigroundAccess() {
+  async function requestBackgroundAccess() {
     busy = true;
     try {
-      state = await api.requestQuay lạigroundAccess();
-      backgroundAccessXác nhận = false;
+      state = await api.requestBackgroundAccess();
+      backgroundAccessConfirm = false;
       error = '';
-    } catch (requestLỗi) {
-      handleRequestLỗi(requestLỗi);
+    } catch (requestError) {
+      handleRequestError(requestError);
     } finally {
       busy = false;
     }
@@ -701,15 +701,15 @@
   </main>
 {:else if authenticated === null}
   <main class="access-shell">
-    <giâytion class="panel access-card loading">
+    <section class="panel access-card loading">
       <p class="eyebrow">BYD Camera</p>
       <h1>Đang kiểm tra truy cập điện thoại</h1>
       <p>Kết nốiing giâyurely to the recorder on this network.</p>
-    </giâytion>
+    </section>
   </main>
 {:else if !authenticated}
   <main class="access-shell">
-    <giâytion class="panel access-card">
+    <section class="panel access-card">
       <div class="access-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M9.5 6.5h5M11 18h2"/></svg>
       </div>
@@ -742,7 +742,7 @@
         </button>
       </form>
       {#if error}<div class="error" role="alert">{error}</div>{/if}
-    </giâytion>
+    </section>
   </main>
 {:else}
   <header class="topbar">
@@ -750,7 +750,7 @@
       <p class="eyebrow">BYD Camera</p>
       <h1>{state?.recording ? 'Recording' : 'Ready'}</h1>
     </div>
-    <button class="icon-button" aria-label="Open settings" onclick={openCài đặt}>
+    <button class="icon-button" aria-label="Open settings" onclick={openSettings}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm8.2 4.8v-2.4l-2.1-.7a7 7 0 0 0-.7-1.7l1-2-1.7-1.7-2 1a7 7 0 0 0-1.7-.7L12.3 2H9.9l-.7 2.1a7 7 0 0 0-1.7.7l-2-1-1.7 1.7 1 2a7 7 0 0 0-.7 1.7l-2.1.7v2.4l2.1.7c.2.6.4 1.2.7 1.7l-1 2 1.7 1.7 2-1c.5.3 1.1.5 1.7.7l.7 2.1h2.4l.7-2.1c.6-.2 1.2-.4 1.7-.7l2 1 1.7-1.7-1-2c.3-.5.5-1.1.7-1.7l2.1-.7Z"/></svg>
     </button>
   </header>
@@ -758,7 +758,7 @@
   <main class="app-shell">
     {#if error}<div class="error" role="alert">{error}</div>{/if}
     {#if !state}
-      <giâytion class="main-skeleton" aria-label="Đang tải máy ghi">
+      <section class="main-skeleton" aria-label="Loading recorder">
         <div class="panel skeleton-recording">
           <span class="skeleton-block skeleton-toggle"></span>
           <span class="skeleton-copy">
@@ -778,9 +778,9 @@
           <div class="panel"><i></i><i></i><b></b></div>
           <div class="panel"><i></i><i></i><b></b></div>
         </div>
-      </giâytion>
+      </section>
     {:else}
-      <giâytion class:recording={state.recording} class="recording-card panel">
+      <section class:recording={state.recording} class="recording-card panel">
         <ToggleSwitch
           checked={state.recording}
           disabled={busy}
@@ -795,10 +795,10 @@
           </strong>
           <p>{state.message}</p>
         </div>
-      </giâytion>
+      </section>
 
-      <giâytion>
-        <div class="giâytion-heading"><h2>Camera trực tiếp</h2><span>Updates automatically</span></div>
+      <section>
+        <div class="section-heading"><h2>Camera trực tiếp</h2><span>Updates automatically</span></div>
         {#if state.wifiName}
           <p class="network-state">
             <strong>{state.wifiName}</strong>
@@ -818,23 +818,23 @@
                 style={flipTransformStyle(camera, state.settings)}
                 use:cameraStream={{
                   path: `./api/cameras/${camera}/stream`,
-                  enabled: !settingsOpen && !selectedCamera && !selectedĐoạn ghi
+                  enabled: !settingsOpen && !selectedCamera && !selectedSegment
                 }}
               />
               <span class="camera-caption">{cameraName(camera)}</span>
             </button>
           {/each}
         </div>
-      </giâytion>
+      </section>
 
-      <giâytion class="panel storage">
+      <section class="panel storage">
         <div><span>Còn trống</span><strong>{formatBytes(state.storage.availableBytes)}</strong></div>
         <div><span>Máy ghi</span><strong>{formatBytes(state.storage.recorderBytes)}</strong></div>
-        <div><span>Đã khóa</span><strong>{formatBytes(state.storage.đã khóaBytes)}</strong></div>
-      </giâytion>
+        <div><span>Đã khóa</span><strong>{formatBytes(state.storage.lockedBytes)}</strong></div>
+      </section>
 
-      <giâytion>
-        <div class="giâytion-heading">
+      <section>
+        <div class="section-heading">
           <h2>Bản ghi</h2>
           <span>{state.segments.length} available</span>
         </div>
@@ -849,10 +849,10 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="13" height="13" rx="2"/><path d="M4 16V6a2 2 0 0 1 2-2h10M10 10l7 7m0-7-7 7"/></svg>
               </button>
               <button class="icon-button bulk-lock" aria-label="Khóa bản ghi đã chọn" disabled={busy} onclick={() => requestBulkAction('lock')}>
-                <KhóaIcon đã khóa={true} />
+                <LockIcon locked={true} />
               </button>
               <button class="icon-button" aria-label="Mở khóa selected recordings" disabled={busy} onclick={() => requestBulkAction('unlock')}>
-                <KhóaIcon đã khóa={false} />
+                <LockIcon locked={false} />
               </button>
             </div>
           </div>
@@ -863,7 +863,7 @@
           {/if}
           {#each state.segments.slice(recordingWindowStart, recordingWindowEnd) as segment (segment.id)}
             <article
-              class:unavailable={segment.active || segment.chưa hoàn tất}
+              class:unavailable={segment.active || segment.incomplete}
               class:selected={isRecordingSelected(segment)}
               class="segment panel"
               data-recording-id={segment.id}
@@ -882,29 +882,29 @@
                   <strong>{segment.displayName}</strong>
                   <small>
                     {segment.active ? 'Đang ghi file' : formatBytes(segment.sizeBytes)} ·
-                    {segment.active ? 'đang ghi' : segment.đang hoàn tất ? 'đang hoàn tất' : segment.chưa hoàn tất ? 'chưa hoàn tất' : segment.đã khóa ? 'đã khóa' : 'unđã khóa'}
+                    {segment.active ? 'recording now' : segment.finalizing ? 'finalizing' : segment.incomplete ? 'incomplete' : segment.locked ? 'locked' : 'unlocked'}
                   </small>
-                  {#if segment.đang hoàn tất}
+                  {#if segment.finalizing}
                     {@const percent = finalizePercent(segment)}
                     <span
                       class="finalize-progress"
                       role="progressbar"
                       aria-label={`Finalizing ${segment.displayName}`}
-                      aria-valuephút="0"
+                      aria-valuemin="0"
                       aria-valuemax="100"
                       aria-valuenow={percent >= 0 ? percent : undefined}
                     >
                       <span class="finalize-progress-track">
                         <span
                           class="finalize-progress-fill"
-                          class:indeterphútate={percent < 0}
+                          class:indeterminate={percent < 0}
                           style={percent >= 0 ? `width: ${percent}%` : ''}
                         ></span>
                       </span>
                       <strong>{percent >= 0 ? `${percent}%` : '…'}</strong>
                     </span>
                   {/if}
-                  {#if !segment.active && !segment.chưa hoàn tất}
+                  {#if !segment.active && !segment.incomplete}
                     <LazyImage
                       className="segment-preview-strip"
                       src={recordingPreviewUrl(segment)}
@@ -915,18 +915,18 @@
               </button>
               <div class:hidden={selectionMode} class="segment-actions">
                 <button
-                  class:đã khóa={segment.đã khóa}
+                  class:locked={segment.locked}
                   class="segment-lock"
                   disabled={segment.active || busy}
-                  aria-label={segment.đã khóa ? `Mở khóa ${segment.displayName}` : `Khóa ${segment.displayName}`}
-                  onclick={() => (confirmKhóa = segment)}
+                  aria-label={segment.locked ? `Unlock ${segment.displayName}` : `Lock ${segment.displayName}`}
+                  onclick={() => (confirmLock = segment)}
                 >
-                  <KhóaIcon đã khóa={segment.đã khóa} />
+                  <LockIcon locked={segment.locked} />
                 </button>
                 <button
                   class="segment-open"
                   aria-label={`Open ${segment.displayName}`}
-                  onclick={() => openĐoạn ghi(segment)}
+                  onclick={() => openSegment(segment)}
                 >
                   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5h7l2 2h9v9.5H3V7.5Z"/><path d="M3 11h18"/></svg>
                 </button>
@@ -937,14 +937,14 @@
             <div class="recording-window-spacer" style={`height: ${recordingBottomSpacer}px`}></div>
           {/if}
         </div>
-      </giâytion>
+      </section>
 
     {/if}
   </main>
 
   {#if selectedCamera}
     <div class="modal-backdrop camera-viewer-backdrop">
-      <giâytion class="modal camera-viewer-modal">
+      <section class="modal camera-viewer-modal">
         <div class="modal-title">
           <div><p class="eyebrow">Camera trực tiếp</p><h2>{cameraName(selectedCamera)}</h2></div>
           <button class="icon-button" aria-label="Đóng live camera" onclick={() => (selectedCamera = null)}>
@@ -957,40 +957,40 @@
           streamPath={`./api/cameras/${selectedCamera}/stream`}
           flipStyle={flipTransformStyle(selectedCamera, state.settings)}
         />
-      </giâytion>
+      </section>
     </div>
   {/if}
 
-  {#if selectedĐoạn ghi}
-    {@const selectedFile = selectedĐoạn ghi.files.find((file) => file.name === selectedFileName) || preferredFile(selectedĐoạn ghi)}
+  {#if selectedSegment}
+    {@const selectedFile = selectedSegment.files.find((file) => file.name === selectedFileName) || preferredFile(selectedSegment)}
     <div class="modal-backdrop">
-      <giâytion class="modal segment-detail viewer-modal">
+      <section class="modal segment-detail viewer-modal">
         <div class="modal-title">
-          <div><p class="eyebrow">Recording</p><h2>{selectedĐoạn ghi.displayName}</h2></div>
-          <button class="icon-button" aria-label="Đóng recording" onclick={closeĐoạn ghi}>
+          <div><p class="eyebrow">Recording</p><h2>{selectedSegment.displayName}</h2></div>
+          <button class="icon-button" aria-label="Close recording" onclick={closeSegment}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg>
           </button>
         </div>
-        {#if selectedĐoạn ghi.active}
+        {#if selectedSegment.active}
           <div class="recording-notice">This recording is still being written. Playback and downloads become available after it is finalized.</div>
-        {:else if selectedĐoạn ghi.chưa hoàn tất}
-          <div class="recording-notice interrupted">This recording was interrupted before its MP4 files finalized. It can be retained or đã khóa here, but deletion is available only from the car.</div>
+        {:else if selectedSegment.incomplete}
+          <div class="recording-notice interrupted">This recording was interrupted before its MP4 files finalized. It can be retained or locked here, but deletion is available only from the car.</div>
         {/if}
         <div class="viewer-actions" aria-label="Thao tác bản ghi">
           <button
-            class:đã khóa={selectedĐoạn ghi.đã khóa}
+            class:locked={selectedSegment.locked}
             class="viewer-action viewer-lock"
-            disabled={selectedĐoạn ghi.active || busy}
-            aria-label={selectedĐoạn ghi.đã khóa ? 'Mở khóa recording' : 'Khóa recording'}
-            onclick={() => (confirmKhóa = selectedĐoạn ghi)}
+            disabled={selectedSegment.active || busy}
+            aria-label={selectedSegment.locked ? 'Unlock recording' : 'Lock recording'}
+            onclick={() => (confirmLock = selectedSegment)}
           >
-            <KhóaIcon đã khóa={selectedĐoạn ghi.đã khóa} />
+            <LockIcon locked={selectedSegment.locked} />
           </button>
           {#if selectedFile}
             <a
               class="viewer-action"
               aria-label="Mở bằng trình phát ngoài"
-              href={videoUrl(selectedĐoạn ghi.id, selectedFile.name)}
+              href={videoUrl(selectedSegment.id, selectedFile.name)}
               target="_blank"
               rel="noopener"
             >
@@ -1000,7 +1000,7 @@
               class="viewer-action"
               aria-label="Tải về điện thoại"
               download={selectedFile.name}
-              href={videoUrl(selectedĐoạn ghi.id, selectedFile.name, true)}
+              href={videoUrl(selectedSegment.id, selectedFile.name, true)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg>
             </a>
@@ -1013,28 +1013,28 @@
             </button>
           {/if}
         </div>
-        {#if selectedĐoạn ghi.files.length > 0}
+        {#if selectedSegment.files.length > 0}
           <div class="viewer-toolbar">
             <ChoicePicker
               label="Bản ghi camera"
               value={selectedFile?.name || ''}
-              options={selectedĐoạn ghi.files.map((file) => ({ value: file.name, label: file.name }))}
+              options={selectedSegment.files.map((file) => ({ value: file.name, label: file.name }))}
               onchange={(value) => (selectedFileName = value)}
             />
           </div>
           {#key selectedFile.name}
-            <VideoPlayer label={selectedFile.name} src={videoUrl(selectedĐoạn ghi.id, selectedFile.name)} />
+            <VideoPlayer label={selectedFile.name} src={videoUrl(selectedSegment.id, selectedFile.name)} />
           {/key}
-        {:else if !selectedĐoạn ghi.active && !selectedĐoạn ghi.chưa hoàn tất}
+        {:else if !selectedSegment.active && !selectedSegment.incomplete}
           <div class="recording-notice interrupted">Không finalized video files are available for this recording.</div>
         {/if}
-      </giâytion>
+      </section>
     </div>
   {/if}
 
   {#if settingsOpen && state}
     <div class="modal-backdrop">
-      <giâytion class="modal settings">
+      <section class="modal settings">
         <div class="modal-title settings-header">
           <div><p class="eyebrow">Phone controls</p><h2>Cài đặt máy ghi</h2></div>
           <div class="settings-header-actions">
@@ -1042,7 +1042,7 @@
               class="icon-button settings-save"
               aria-label={settingsDirty ? 'Lưu settings changes' : 'Cài đặt are already saved'}
               disabled={busy || !settingsDirty}
-              onclick={saveCài đặt}
+              onclick={saveSettings}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M5 3h12l2 2v16H5z"/>
@@ -1072,7 +1072,7 @@
             class:granted={state.backgroundAccessGranted}
             class="background-access-action"
             aria-label="Mở truy cập ghi hình nền trên màn hình xe"
-            onclick={() => (backgroundAccessXác nhận = true)}
+            onclick={() => (backgroundAccessConfirm = true)}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 2.75 19 5.7v5.12c0 4.38-2.77 8.34-7 10.43-4.23-2.09-7-6.05-7-10.43V5.7L12 2.75Z"/>
@@ -1086,10 +1086,10 @@
             label="Ổ lưu trữ ghi hình"
             value={settingsDraft.volumeIndex}
             options={state.volumes.map((volume) => ({ value: volume.index, label: volume.label }))}
-            onchange={(value) => updateCài đặtDraft('volumeIndex', value)}
+            onchange={(value) => updateSettingsDraft('volumeIndex', value)}
           />
         </label>
-        <!-- Độ phân giải selection is temporarily hidden; recording always uses
+        <!-- Resolution selection is temporarily hidden; recording always uses
              the native maximum profile. Restore this block to re-enable. -->
         {#if false}
         <label><span class="setting-label"><span>Độ phân giải video</span><HelpButton title="Độ phân giải video" text={settingHelp.resolution} /></span>
@@ -1098,7 +1098,7 @@
             multiline={true}
             value={settingsDraft.resolution}
             options={resolutionOptions}
-            onchange={(value) => updateCài đặtDraft('resolution', value)}
+            onchange={(value) => updateSettingsDraft('resolution', value)}
           />
         </label>
         {/if}
@@ -1110,7 +1110,7 @@
                 label={`Camera ${camera} name`}
                 maxlength={32}
                 value={settingsDraft[`camera${camera}Name`]}
-                onchange={(value) => updateCài đặtDraft(`camera${camera}Name`, value)}
+                onchange={(value) => updateSettingsDraft(`camera${camera}Name`, value)}
               />
             </label>
           {/each}
@@ -1126,13 +1126,13 @@
                   <FlipToggle
                     direction="horizontal"
                     label={`Ngang flip for ${settingsDraft[`camera${camera}Name`] || `Camera ${camera}`}`}
-                    checked={Boolean(settingsDraft[`camera${camera}FlipNgang`])}
+                    checked={Boolean(settingsDraft[`camera${camera}FlipHorizontal`])}
                     onchange={(checked) => updateCameraFlip(camera, 'Ngang', checked)}
                   />
                   <FlipToggle
                     direction="vertical"
                     label={`Dọc flip for ${settingsDraft[`camera${camera}Name`] || `Camera ${camera}`}`}
-                    checked={Boolean(settingsDraft[`camera${camera}FlipDọc`])}
+                    checked={Boolean(settingsDraft[`camera${camera}FlipVertical`])}
                     onchange={(checked) => updateCameraFlip(camera, 'Dọc', checked)}
                   />
                 </div>
@@ -1163,9 +1163,9 @@
             <SliderControl
               label="Cắt mép mắt cá cho tất cả camera"
               value={settingsDraft.fisheyeCropPercent}
-              phútimum={0}
+              minimum={0}
               maximum={35}
-              onchange={(value) => updateCài đặtDraft('fisheyeCropPercent', value)}
+              onchange={(value) => updateSettingsDraft('fisheyeCropPercent', value)}
             />
             <strong>{Number(settingsDraft.fisheyeCropPercent) || 0}%</strong>
           </div>
@@ -1180,54 +1180,54 @@
           />
         </div>
         <label><span class="setting-label"><span>Hạn mức máy ghi (GB)</span><HelpButton title="Hạn mức máy ghi" text={settingHelp.quota} /></span>
-          <NumberField label="Hạn mức máy ghi (GB)" phút={0.25} max={1000} step={0.25} unit="GB" value={settingsDraft.quotaGb} onchange={(value) => updateCài đặtDraft('quotaGb', value)} />
+          <NumberField label="Recorder quota in gigabytes" min={0.25} max={1000} step={0.25} unit="GB" value={settingsDraft.quotaGb} onchange={(value) => updateSettingsDraft('quotaGb', value)} />
         </label>
         <label><span class="setting-label"><span>Thời gian lưu (ngày)</span><HelpButton title="Thời gian lưu" text={settingHelp.retention} /></span>
-          <NumberField label="Thời gian lưu in ngày" phút={1} max={3650} unit="ngày" value={settingsDraft.retentionDays} onchange={(value) => updateCài đặtDraft('retentionDays', value)} />
+          <NumberField label="Retention in days" min={1} max={3650} unit="days" value={settingsDraft.retentionDays} onchange={(value) => updateSettingsDraft('retentionDays', value)} />
         </label>
         <label><span class="setting-label"><span>Độ dài đoạn ghi (phútutes)</span><HelpButton title="Độ dài đoạn ghi" text={settingHelp.segment} /></span>
-          <NumberField label="Độ dài đoạn ghi in phútutes" phút={1} max={10} unit="phút" value={settingsDraft.segmentMinutes} onchange={(value) => updateCài đặtDraft('segmentMinutes', value)} />
+          <NumberField label="Segment length in minutes" min={1} max={10} unit="min" value={settingsDraft.segmentMinutes} onchange={(value) => updateSettingsDraft('segmentMinutes', value)} />
         </label>
         <label><span class="setting-label"><span>Dung lượng trống tối thiểu (%)</span><HelpButton title="Dung lượng trống tối thiểu" text={settingHelp.reserve} /></span>
-          <NumberField label="Phần trăm dung lượng trống tối thiểu" phút={1} max={25} unit="%" value={settingsDraft.phútFreePercent} onchange={(value) => updateCài đặtDraft('phútFreePercent', value)} />
+          <NumberField label="Minimum free space percentage" min={1} max={25} unit="%" value={settingsDraft.minFreePercent} onchange={(value) => updateSettingsDraft('minFreePercent', value)} />
         </label>
         <label><span class="setting-label"><span>Định dạng hiển thị ngày</span><HelpButton title="Định dạng hiển thị ngày" text={settingHelp.date} /></span>
           <ChoicePicker
             label="Định dạng hiển thị ngày"
             value={settingsDraft.dateFormat}
             options={state.dateFormats.map((format) => ({ value: format.id, label: format.label }))}
-            onchange={(value) => updateCài đặtDraft('dateFormat', value)}
+            onchange={(value) => updateSettingsDraft('dateFormat', value)}
           />
         </label>
-      </giâytion>
+      </section>
     </div>
   {/if}
 
-  {#if backgroundAccessXác nhận && state?.backgroundAccessSupported}
-    <Xác nhậnDialog
+  {#if backgroundAccessConfirm && state?.backgroundAccessSupported}
+    <ConfirmDialog
       title="Open background recording access?"
       message="The car display will open an explanation and Android's battery-optimization control. Xác nhận the request on the car so recording can continue while its interface is closed. Android force-stop still stops every app."
       confirmLabel="Open on car"
       busy={busy}
-      onconfirm={requestQuay lạigroundAccess}
-      oncancel={() => (backgroundAccessXác nhận = false)}
+      onconfirm={requestBackgroundAccess}
+      oncancel={() => (backgroundAccessConfirm = false)}
     />
   {/if}
 
-  {#if confirmKhóa}
-    <Xác nhậnDialog
-      title={confirmKhóa.đã khóa ? 'Mở khóa this recording?' : 'Khóa this recording?'}
-      message={confirmKhóa.đã khóa
-        ? 'Automatic cleanup may remove this recording after it is unđã khóa.'
+  {#if confirmLock}
+    <ConfirmDialog
+      title={confirmLock.locked ? 'Unlock this recording?' : 'Lock this recording?'}
+      message={confirmLock.locked
+        ? 'Automatic cleanup may remove this recording after it is unlocked.'
         : 'Bản ghi bị khóa được bảo vệ khỏi dọn tự động.'}
-      confirmLabel={confirmKhóa.đã khóa ? 'Mở khóa' : 'Khóa'}
-      oncancel={() => (confirmKhóa = null)}
-      onconfirm={() => toggleKhóa(confirmKhóa)}
+      confirmLabel={confirmLock.locked ? 'Unlock' : 'Lock'}
+      oncancel={() => (confirmLock = null)}
+      onconfirm={() => toggleLock(confirmLock)}
     />
   {/if}
 
   {#if bulkAction}
-    <Xác nhậnDialog
+    <ConfirmDialog
       title={bulkAction.title}
       message={bulkAction.message}
       confirmLabel={bulkAction.confirmLabel}
