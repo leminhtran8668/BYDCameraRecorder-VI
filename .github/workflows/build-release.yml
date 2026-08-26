@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Tạo GitHub Release sau khi build (chỉ nên dùng khi muốn phát hành)'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
@@ -16,7 +23,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── phone-ui (차량 앱 내장 웹 UI) ──────────────────────────────────
+      # ── phone-ui (xe app nội bộ web UI) ──────────────────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -27,7 +34,7 @@ jobs:
       - name: Build phone-ui
         run: npm --prefix phone-ui ci && npm --prefix phone-ui run build
 
-      # ── 차량용 Android APK ─────────────────────────────────────────────
+      # ── APK xe Android ─────────────────────────────────────────────
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -39,8 +46,21 @@ jobs:
         env:
           BYD_CAMERA_SIGNING_MODE: debug
 
+      - name: Determine version / artifact name
+        id: meta
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="build-$(echo ${{ github.sha }} | cut -c1-7)"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version/artifact: $VERSION"
+
       - name: Rename car APK
-        run: cp build/byd-dashcam-debug.apk build/BYD-BlackBox-Car-${{ github.ref_name }}.apk
+        run: |
+          mkdir -p build
+          cp build/byd-dashcam-debug.apk "build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk"
 
       # ── Release signing (optional) ──────────────────────────────────────
       # To enable release signing:
@@ -64,9 +84,9 @@ jobs:
       #     BYD_CAMERA_SIGNING_MODE: release
       #     BYD_CAMERA_RELEASE_SIGNING_DIR: ${{ github.workspace }}_build_secret
       # - name: Rename car APK
-      #   run: cp build/byd-dashcam.apk build/BYD-BlackBox-Car-${{ github.ref_name }}.apk
+      #   run: cp build/byd-dashcam.apk build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk
 
-      # ── 폰앱 Flutter Android APK ───────────────────────────────────────
+      # ── Phone app Flutter Android APK ───────────────────────────────────────
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -81,15 +101,26 @@ jobs:
         working-directory: mobile
 
       - name: Rename phone APK
-        run: cp mobile/build/app/outputs/flutter-apk/app-debug.apk build/BYD-BlackBox-Phone-${{ github.ref_name }}.apk
+        run: cp mobile/build/app/outputs/flutter-apk/app-debug.apk "build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk"
 
-      # ── GitHub Release ─────────────────────────────────────────────────
+      # ── Upload artifacts (luôn có, dù không tạo release) ─────────────────
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BYD-BlackBox-${{ steps.meta.outputs.version }}
+          path: |
+            build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk
+            build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk
+          retention-days: 14
+
+      # ── GitHub Release (chỉ khi push tag v* hoặc manual chọn create_release) ─
       - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
         run: |
-          gh release create "${{ github.ref_name }}" \
+          gh release create "${{ steps.meta.outputs.version }}" \
             --generate-notes \
-            --title "${{ github.ref_name }}" \
-            "build/BYD-BlackBox-Car-${{ github.ref_name }}.apk" \
-            "build/BYD-BlackBox-Phone-${{ github.ref_name }}.apk"
+            --title "${{ steps.meta.outputs.version }}" \
+            "build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk" \
+            "build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
