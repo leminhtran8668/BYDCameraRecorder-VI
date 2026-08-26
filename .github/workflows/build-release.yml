@@ -42,7 +42,7 @@ jobs:
           distribution: 'temurin'
 
       - name: Build car APK
-        run: ./build.sh
+        run: bash build.sh
         env:
           BYD_CAMERA_SIGNING_MODE: debug
 
@@ -79,7 +79,7 @@ jobs:
       #     echo "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" \
       #       > ${GITHUB_WORKSPACE}_build_secret/byd-camera-release.password
       # - name: Build car APK (release-signed)
-      #   run: ./build.sh
+      #   run: bash build.sh
       #   env:
       #     BYD_CAMERA_SIGNING_MODE: release
       #     BYD_CAMERA_RELEASE_SIGNING_DIR: ${{ github.workspace }}_build_secret
