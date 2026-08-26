@@ -410,6 +410,17 @@ public final class FrameProcessor {
         }
     }
 
+    
+    private void ensurePreviewPixelBuffers() {
+        int needed = PREVIEW_CAMERA_WIDTH * PREVIEW_CAMERA_HEIGHT;
+        if (previewPixels == null
+                || previewPixels.length != CAMERA_COUNT
+                || previewPixels[0] == null
+                || previewPixels[0].length != needed) {
+            previewPixels = new int[CAMERA_COUNT][needed];
+        }
+    }
+
     private Bitmap[] createPreviewBitmapSet() {
         Bitmap[] bitmaps = new Bitmap[CAMERA_COUNT];
         for (int index = 0; index < CAMERA_COUNT; index++) {
