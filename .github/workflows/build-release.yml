@@ -1,0 +1,85 @@
+name: Build Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── phone-ui (web UI nhúng trong app xe) ─────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: phone-ui/package-lock.json
+
+      - name: Build phone-ui
+        run: npm --prefix phone-ui ci && npm --prefix phone-ui run build
+
+      # ── APK app trên xe (Android) ────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build car APK (debug)
+        run: bash build.sh
+        env:
+          BYD_CAMERA_SIGNING_MODE: debug
+
+      - name: Rename car APK
+        run: |
+          mkdir -p dist
+          cp build/byd-dashcam-debug.apk "dist/BYD-Camera-Car-${{ github.ref_name }}.apk" || \
+          cp build/byd-dashcam.apk "dist/BYD-Camera-Car-${{ github.ref_name }}.apk"
+
+      # ── App điện thoại Flutter ──────────────────────────────────────────
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Flutter dependencies
+        run: flutter pub get
+        working-directory: mobile
+
+      - name: Build phone app APK
+        run: flutter build apk --release
+        working-directory: mobile
+
+      - name: Copy phone APK
+        run: |
+          cp mobile/build/app/outputs/flutter-apk/app-release.apk \
+            "dist/BYD-Camera-Phone-${{ github.ref_name }}.apk" || \
+          cp mobile/build/app/outputs/flutter-apk/app-debug.apk \
+            "dist/BYD-Camera-Phone-${{ github.ref_name }}.apk"
+
+      # ── Upload artifacts ────────────────────────────────────────────────
+      - name: Upload APKs
+        uses: actions/upload-artifact@v4
+        with:
+          name: byd-camera-apks
+          path: dist/*.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.apk
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

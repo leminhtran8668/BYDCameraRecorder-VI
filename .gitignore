@@ -1,0 +1,9 @@
+node_modules/
+build/
+mobile/build/
+mobile/.dart_tool/
+*.apk
+.DS_Store
+__pycache__/
+.idea/
+*.iml
