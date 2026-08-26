@@ -8,8 +8,8 @@ import android.os.Bundle;
 import android.util.Log;
 
 /**
- * GPS 위치 데이터 공급자.
- * LocationManager를 래핑하고 최근 fix를 캐싱합니다.
+ * Nhà cung cấp dữ liệu vị trí GPS.
+ * Bọc LocationManager và cache fix gần nhất.
  */
 public class GpsDataProvider implements LocationListener {
     public interface Listener {
@@ -81,7 +81,7 @@ public class GpsDataProvider implements LocationListener {
         lastFix = GpsFix.UNAVAILABLE;
     }
 
-    /** 가장 최근 GPS fix를 반환합니다. fix가 없으면 GpsFix.UNAVAILABLE. */
+    /** Trả về fix GPS gần nhất. Nếu không có: GpsFix.UNAVAILABLE. */
     public GpsFix getLastFix() {
         return lastFix;
     }

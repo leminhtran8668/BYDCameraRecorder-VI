@@ -9,10 +9,10 @@ import android.graphics.Typeface;
 import java.util.Locale;
 
 /**
- * GPS 정보 및 차량 텔레메트리를 NV21 프레임에 직접 합성하는 렌더러.
+ * Renderer ghép thông tin GPS và telemetry xe trực tiếp lên khung NV21.
  *
- * <p>전략: NV21 전체를 Bitmap으로 변환하지 않고,
- * 오버레이 영역의 Bitmap만 유지합니다.
+ * <p>Chiến lược: không chuyển cả NV21 sang Bitmap,
+ * chỉ giữ Bitmap vùng overlay.
  * 속도/기어/방향지시등 변화 시에만 Bitmap을 재렌더링하고,
  * 매 프레임에는 Bitmap Y값을 NV21 Y채널에 알파 블렌딩합니다.
  *
@@ -310,10 +310,10 @@ public final class GpsOverlayRenderer {
 
     /** lightFlags 비트를 가장 우선순위 높은 전조등 상태 텍스트로 변환. */
     private static String buildLightText(int flags) {
-        if ((flags & 0x04) != 0) return "[HB]";  // 상향등
-        if ((flags & 0x02) != 0) return "[HL]";  // 하향등
-        if ((flags & 0x08) != 0) return "[FG]";  // 안개등
-        if ((flags & 0x01) != 0) return "[PL]";  // 위치등
+        if ((flags & 0x04) != 0) return "[HB]";  // đèn pha
+        if ((flags & 0x02) != 0) return "[HL]";  // đèn cốt
+        if ((flags & 0x08) != 0) return "[FG]";  // đèn sương mù
+        if ((flags & 0x01) != 0) return "[PL]";  // đèn vị trí
         return "";
     }
 

@@ -10,8 +10,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Telegram Bot API를 통해 알림 메시지를 발송합니다.
- * 모든 전송은 백그라운드 스레드에서 비동기로 수행됩니다.
+ * Gửi thông báo qua Telegram Bot API.
+ * Mọi gửi đều bất đồng bộ trên luồng nền.
  */
 public final class TelegramNotifier {
     private static final String TAG = "BYDCamera";
@@ -36,7 +36,7 @@ public final class TelegramNotifier {
         this.enabled = enabled;
     }
 
-    /** 비동기로 메시지를 발송합니다. 설정이 없거나 비활성화 상태면 무시합니다. */
+    /** Gửi tin nhắn bất đồng bộ. Bỏ qua nếu chưa cấu hình hoặc đã tắt. */
     public void send(final String message) {
         if (!enabled
                 || botToken == null || botToken.isEmpty()

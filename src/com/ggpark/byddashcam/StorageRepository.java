@@ -19,8 +19,8 @@ import java.util.Set;
 
 public final class StorageRepository {
     public static final String LOCKED_DELETE_MESSAGE =
-            "Locked recordings must be unlocked before they can be deleted. "
-                    + "Unlock the selected recording, then try again.";
+            "Phải mở khóa bản ghi trước khi xóa. "
+                    + "Mở khóa bản ghi đã chọn rồi thử lại.";
 
     private static final String TAG = "BYDCamera";
     // Protects a directory that is mid-creation from a concurrent recovery
@@ -340,19 +340,37 @@ public final class StorageRepository {
             if (directory == null) {
                 continue;
             }
-            boolean removable = Environment.isExternalStorageRemovable(directory);
+            // Ensure the app-specific directory exists on this volume (incl. SD card).
+            if (!directory.exists() && !directory.mkdirs()) {
+                Log.w(TAG, "Cannot create storage dir: " + directory);
+                continue;
+            }
+            boolean removable = false;
+            try {
+                removable = Environment.isExternalStorageRemovable(directory);
+            } catch (Exception ignored) {
+            }
             String pathStr = directory.getAbsolutePath();
-            String typeLabel;
-            if (removable || pathStr.contains("sdcard") || pathStr.contains("/storage/") && !pathStr.contains("emulated")) {
-                typeLabel = "Thẻ SD / Removable";
-            } else {
-                typeLabel = "Bộ nhớ trong / Internal";
+            boolean looksLikeSd =
+                    removable
+                    || pathStr.contains("/sdcard")
+                    || pathStr.contains("SD")
+                    || pathStr.contains("sdcard1")
+                    || (pathStr.contains("/storage/")
+                            && !pathStr.contains("/emulated/")
+                            && !pathStr.contains("/self/"));
+            String typeLabel = looksLikeSd ? "Thẻ nhớ SD" : "Bộ nhớ trong";
+            long freeMb = 0L;
+            try {
+                StatFs stat = new StatFs(directory.getAbsolutePath());
+                freeMb = stat.getAvailableBytes() / (1024L * 1024L);
+            } catch (Exception ignored) {
             }
             String label = String.format(
                     Locale.US,
-                    "%s: %s",
+                    "%s · còn trống %d MB",
                     typeLabel,
-                    pathStr);
+                    freeMb);
             result.add(new StorageVolume(index, label, directory));
         }
         return result;

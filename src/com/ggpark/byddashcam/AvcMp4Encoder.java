@@ -72,7 +72,7 @@ public final class AvcMp4Encoder {
                 MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
         format.setInteger(MediaFormat.KEY_BIT_RATE, bitrate);
         format.setInteger(MediaFormat.KEY_FRAME_RATE, frameRate);
-        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+        format.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 2); // 2s: lighter CPU, still seekable
 
         codec = MediaCodec.createEncoderByType(MIME_TYPE);
         codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);

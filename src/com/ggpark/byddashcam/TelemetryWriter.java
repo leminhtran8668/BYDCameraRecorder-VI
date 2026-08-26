@@ -10,15 +10,15 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 /**
- * 차량 텔레메트리를 세그먼트 디렉토리의 telemetry.bin 파일에 기록합니다.
+ * Ghi telemetry xe vào file telemetry.bin trong thư mục đoạn ghi.
  *
- * <p>패킷 포맷 (9바이트, little-endian):
+ * <p>Định dạng gói (9 byte, little-endian):
  * <pre>
- * offset 0: int32  deltaMs            - 세그먼트 시작 기준 경과 ms
- * offset 4: uint8  speedKmh           - 0-255 클램프
+ * offset 0: int32  deltaMs            - ms kể từ đầu đoạn
+ * offset 4: uint8  speedKmh           - kẹp 0-255
  * offset 5: uint8  acceleratorPercent - 0-100
  * offset 6: uint8  brakePercent       - 0-100
- * offset 7: uint8  gearBlinkBeltFlags - bit0=P,1=R,2=N,3=D,4=좌,5=우,6=벨트
+ * offset 7: uint8  gearBlinkBeltFlags - bit0=P,1=R,2=N,3=D,4=trái,5=phải,6=đai
  * offset 8: uint8  lightFlags         - bit0=위치등,1=하향등,2=상향등,3=안개등
  * </pre>
  */

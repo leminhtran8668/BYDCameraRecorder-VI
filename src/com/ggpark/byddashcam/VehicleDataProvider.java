@@ -9,8 +9,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
- * BYD 비공개 API에 Java Reflection으로 접근해 차량 텔레메트리를 100ms 주기로 폴링합니다.
- * BYD API 미지원 기기에서도 graceful degradation: UNAVAILABLE 텔레메트리를 콜백합니다.
+ * Dùng Java Reflection truy cập API riêng BYD, poll telemetry xe mỗi 100ms.
+ * Trên máy không hỗ trợ API BYD: degrade êm, callback telemetry UNAVAILABLE.
  */
 public final class VehicleDataProvider {
     public interface Listener {
@@ -68,7 +68,7 @@ public final class VehicleDataProvider {
     }
 
     private void initDevices(Context context) {
-        // 속도/가속/브레이크 디바이스
+        // Thiết bị tốc độ/ga/phanh
         try {
             Class<?> cls = Class.forName(
                     "android.hardware.bydauto.speed.BYDAutoSpeedDevice");
@@ -83,7 +83,7 @@ public final class VehicleDataProvider {
             Log.w(TAG, "BYD speed device unavailable: " + e.getMessage());
         }
 
-        // 기어박스 디바이스
+        // Thiết bị hộp số
         try {
             Class<?> cls = Class.forName(
                     "android.hardware.bydauto.gearbox.BYDAutoGearboxDevice");
@@ -96,7 +96,7 @@ public final class VehicleDataProvider {
             Log.w(TAG, "BYD gear device unavailable: " + e.getMessage());
         }
 
-        // 조명 디바이스
+        // Thiết bị đèn
         try {
             Class<?> cls = Class.forName(
                     "android.hardware.bydauto.light.BYDAutoLightDevice");

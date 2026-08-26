@@ -11,8 +11,8 @@ import java.io.FileReader;
 import java.io.IOException;
 
 /**
- * CPU, 메모리, 배터리 상태를 수집합니다.
- * /proc/stat, /proc/meminfo, BatteryManager를 사용합니다.
+ * Thu thập trạng thái CPU, bộ nhớ, pin.
+ * Dùng /proc/stat, /proc/meminfo, BatteryManager.
  */
 public final class SystemMonitor {
     private static final String TAG = "BYDCamera";
@@ -47,7 +47,7 @@ public final class SystemMonitor {
         }
     }
 
-    // 이전 CPU 카운터 (delta 계산용)
+    // Bộ đếm CPU trước đó (tính delta)
     private long prevTotal = 0L;
     private long prevIdle  = 0L;
 

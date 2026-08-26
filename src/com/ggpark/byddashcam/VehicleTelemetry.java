@@ -1,16 +1,16 @@
 package com.ggpark.byddashcam;
 
-/** 차량 텔레메트리 데이터 스냅샷. 불변 객체. GpsFix 패턴과 동일한 구조. */
+/** Snapshot dữ liệu telemetry xe. Đối tượng bất biến. Cùng cấu trúc với GpsFix. */
 public final class VehicleTelemetry {
-    /** 텔레메트리 미사용 또는 BYD API 미지원 기기에서 반환되는 sentinel 값 */
+    /** Giá trị sentinel khi không dùng telemetry hoặc máy không hỗ trợ API BYD */
     public static final VehicleTelemetry UNAVAILABLE =
             new VehicleTelemetry(0, 0, 0, 0, 0);
 
-    /** 속도 (km/h, 0-255 클램프) */
+    /** Tốc độ (km/h, kẹp 0-255) */
     public final int speedKmh;
-    /** 가속 페달 깊이 (0-100%) */
+    /** Độ sâu bàn đạp ga (0-100%) */
     public final int acceleratorPercent;
-    /** 브레이크 페달 깊이 (0-100%) */
+    /** Độ sâu bàn đạp phanh (0-100%) */
     public final int brakePercent;
     /**
      * 기어/방향지시등/안전벨트 복합 플래그.
@@ -40,7 +40,7 @@ public final class VehicleTelemetry {
         return this != UNAVAILABLE;
     }
 
-    /** 현재 기어 문자를 반환합니다. 복수 비트 설정 시 우선순위: P > R > N > D */
+    /** 현재 기어 문자를 반환합니다. 복수 비트 설정 시 Thứ tự ưu tiên: P > R > N > D */
     public char gearChar() {
         if ((gearBlinkBeltFlags & 0x01) != 0) return 'P';
         if ((gearBlinkBeltFlags & 0x02) != 0) return 'R';

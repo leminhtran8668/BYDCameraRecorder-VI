@@ -8,9 +8,9 @@ import android.hardware.SensorManager;
 import android.util.Log;
 
 /**
- * 가속도계를 이용한 충격 감지기.
- * SENSOR_DELAY_NORMAL(약 5Hz)로 샘플링하여 배터리 소모를 최소화합니다.
- * 감지 후 MIN_RETRIGGER_NANOS(30초) 이내 재트리거를 방지합니다.
+ * Bộ phát hiện va chạm dùng gia tốc kế.
+ * Lấy mẫu SENSOR_DELAY_NORMAL (~5Hz) để giảm tiêu hao pin.
+ * Sau phát hiện, chặn kích hoạt lại trong MIN_RETRIGGER_NANOS (30 giây).
  */
 public final class ImpactDetector implements SensorEventListener {
     public interface Listener {

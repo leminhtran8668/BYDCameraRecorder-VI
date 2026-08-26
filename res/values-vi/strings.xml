@@ -23,7 +23,7 @@
     <string name="settings_description">Thay đổi áp dụng cho các lần ghi sau. Lần ghi đang chạy giữ nguyên cài đặt hiện tại.</string>
 
     <!-- Language section -->
-    <string name="language_section">Ngôn ngữ / Language</string>
+    <string name="language_section">Ngôn ngữ</string>
 
     <!-- Storage -->
     <string name="section_storage">Bộ nhớ</string>

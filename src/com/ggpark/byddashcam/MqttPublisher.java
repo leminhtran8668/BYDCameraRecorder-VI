@@ -12,9 +12,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
- * MQTT 3.1.1 QoS 0 경량 퍼블리셔.
- * 외부 라이브러리 없이 TCP 소켓으로 직접 구현합니다.
- * Home Assistant MQTT Discovery 자동 등록을 지원합니다.
+ * Publisher MQTT 3.1.1 QoS 0 nhẹ.
+ * Tự triển khai bằng TCP socket, không thư viện ngoài.
+ * Hỗ trợ đăng ký tự động Home Assistant MQTT Discovery.
  *
  * 지원: CONNECT, PUBLISH, PING, DISCONNECT
  * 미지원: QoS 1/2, SUBSCRIBE, TLS (로컬 HA 브로커 기준)
@@ -120,7 +120,7 @@ public final class MqttPublisher {
                 + (deviceClass != null ? ",\"device_class\":" + PhoneJson.quote(deviceClass) : "")
                 + ",\"unique_id\":" + PhoneJson.quote(nodeId + "_" + objectId)
                 + ",\"device\":{\"identifiers\":[" + PhoneJson.quote(nodeId) + "]"
-                + ",\"name\":\"BYD 블랙박스\",\"model\":\"BYDCameraRecorder\",\"manufacturer\":\"ggpark\"}"
+                + ",\"name\":\"BYD Camera\",\"model\":\"BYDCameraRecorder\",\"manufacturer\":\"ggpark\"}"
                 + "}";
         String topic = "homeassistant/sensor/" + nodeId + "/" + objectId + "/config";
         publish(topic, config, true);

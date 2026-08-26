@@ -3,225 +3,225 @@
     <string name="app_name">BYD Camera</string>
 
     <!-- Header -->
-    <string name="connecting_to_service">Connecting to recorder service</string>
-    <string name="hide_controls">Hide controls and recordings</string>
+    <string name="connecting_to_service">Đang kết nối dịch vụ ghi hình</string>
+    <string name="hide_controls">Ẩn điều khiển và danh sách ghi hình</string>
 
     <!-- State -->
-    <string name="state_recording">RECORDING</string>
-    <string name="state_not_recording">NOT RECORDING</string>
-    <string name="state_parking_standby">Parking standby</string>
-    <string name="state_parking_recording">Parking recording</string>
+    <string name="state_recording">ĐANG GHI</string>
+    <string name="state_not_recording">DỪNG GHI</string>
+    <string name="state_parking_standby">Chế độ đỗ xe - chờ</string>
+    <string name="state_parking_recording">Chế độ đỗ xe - đang ghi</string>
 
     <!-- Action bar -->
-    <string name="recording_off_label">Recording is off; tap to start</string>
-    <string name="recording_on_label">Recording is on; tap to pause</string>
-    <string name="parking_start_label">Parking guard</string>
-    <string name="parking_active_label">Parking active — tap to stop</string>
+    <string name="recording_off_label">Ghi hình tắt - chạm để bắt đầu</string>
+    <string name="recording_on_label">Đang ghi - chạm để tạm dừng</string>
+    <string name="parking_start_label">Giám sát đỗ xe</string>
+    <string name="parking_active_label">Đang giám sát đỗ xe - chạm để dừng</string>
 
     <!-- Settings overlay -->
-    <string name="settings_title">Recorder settings</string>
-    <string name="settings_description">Changes apply to future recordings. Active recordings keep their current profile.</string>
+    <string name="settings_title">Cài đặt máy ghi</string>
+    <string name="settings_description">Thay đổi áp dụng cho các lần ghi sau. Lần ghi đang chạy giữ nguyên cài đặt hiện tại.</string>
 
     <!-- Language section -->
-    <string name="language_section">Ngôn ngữ / Language</string>
+    <string name="language_section">Ngôn ngữ</string>
 
     <!-- Storage -->
-    <string name="section_storage">Storage</string>
-    <string name="storage_available">Available</string>
-    <string name="storage_recorder">Recorder</string>
-    <string name="storage_locked">Locked</string>
-    <string name="storage_location">Recording location</string>
-    <string name="storage_policy">Recording policy</string>
-    <string name="storage_total">Total</string>
-    <string name="storage_quota_label">Quota</string>
-    <string name="storage_retention_label">Retention</string>
-    <string name="storage_reserve">Reserve</string>
-    <string name="storage_segment">Segment</string>
-    <string name="storage_resolution">Resolution</string>
-    <string name="loading">Loading</string>
+    <string name="section_storage">Bộ nhớ</string>
+    <string name="storage_available">Còn trống</string>
+    <string name="storage_recorder">Máy ghi</string>
+    <string name="storage_locked">Đã khóa</string>
+    <string name="storage_location">Vị trí ghi hình</string>
+    <string name="storage_policy">Chính sách ghi</string>
+    <string name="storage_total">Tổng</string>
+    <string name="storage_quota_label">Hạn mức</string>
+    <string name="storage_retention_label">Thời gian lưu</string>
+    <string name="storage_reserve">Dự phòng</string>
+    <string name="storage_segment">Đoạn ghi</string>
+    <string name="storage_resolution">Độ phân giải</string>
+    <string name="loading">Đang tải</string>
 
     <!-- Phone access -->
-    <string name="phone_access_label">Phone app access</string>
-    <string name="phone_access_off_toggle">Phone app access is off; tap to enable</string>
-    <string name="phone_access_on_toggle">Phone app access is on; tap to disable</string>
-    <string name="phone_access_url_loading">Phone access URL is loading</string>
-    <string name="phone_access_is_off">Phone app access is off</string>
-    <string name="phone_access_unavailable">Phone app access is unavailable</string>
-    <string name="help_phone_access">Allows phones on the same network to control and view the recorder after PIN authorization. Turning it off immediately blocks phone access.</string>
+    <string name="phone_access_label">Truy cập app điện thoại</string>
+    <string name="phone_access_off_toggle">Truy cập app điện thoại tắt - chạm để bật</string>
+    <string name="phone_access_on_toggle">Truy cập app điện thoại bật - chạm để tắt</string>
+    <string name="phone_access_url_loading">Đang tải URL truy cập điện thoại</string>
+    <string name="phone_access_is_off">Truy cập app điện thoại đang tắt</string>
+    <string name="phone_access_unavailable">Không thể truy cập app điện thoại</string>
+    <string name="help_phone_access">Cho phép điện thoại cùng mạng Wi-Fi điều khiển và xem máy ghi sau khi nhập PIN. Tắt sẽ chặn ngay truy cập từ điện thoại.</string>
 
     <!-- Background access -->
-    <string name="background_access_title">Background recording access</string>
-    <string name="background_access_allowed">Allowed by Android</string>
-    <string name="background_access_warning">Battery optimization may stop background recording</string>
-    <string name="background_access_unsupported">Unavailable on BYD; automatic startup is not verified</string>
-    <string name="background_access_dialog_title">Allow background recording</string>
-    <string name="background_access_dialog_message">To keep recording after the car interface closes, Android must exempt this recorder from battery optimization. Confirm, then allow the request on the Android screen. This does not override Android force-stop.</string>
-    <string name="background_access_open_settings">Open Android settings</string>
-    <string name="background_access_suppress">Don\'t show again</string>
-    <string name="background_access_unsupported_title">Background recording on this system</string>
-    <string name="background_access_unsupported_message">This BYD multimedia system does not expose Android\'s battery-optimization exemption screen to apps. Automatic startup and continued recording are not verified on this system.</string>
-    <string name="background_access_already_title">Background recording access</string>
-    <string name="background_access_already_message">Android battery optimization is already disabled for this recorder. Recording can continue when the car interface is not open. Android force-stop still stops every app and cannot be bypassed.</string>
+    <string name="background_access_title">Truy cập ghi hình nền</string>
+    <string name="background_access_allowed">Android đã cho phép</string>
+    <string name="background_access_warning">Tối ưu pin có thể dừng ghi hình nền</string>
+    <string name="background_access_unsupported">Không hỗ trợ trên BYD; khởi động tự động chưa được xác minh</string>
+    <string name="background_access_dialog_title">Cho phép ghi hình nền</string>
+    <string name="background_access_dialog_message">Để tiếp tục ghi khi giao diện xe đóng, Android cần miễn trừ tối ưu pin cho máy ghi này. Xác nhận rồi cho phép trên màn hình Android. Không thể vượt qua lệnh Force-stop của Android.</string>
+    <string name="background_access_open_settings">Mở cài đặt Android</string>
+    <string name="background_access_suppress">Không hiện lại</string>
+    <string name="background_access_unsupported_title">Ghi hình nền trên hệ thống này</string>
+    <string name="background_access_unsupported_message">Hệ thống đa phương tiện BYD này không mở màn hình miễn trừ tối ưu pin của Android cho ứng dụng. Khởi động tự động và ghi liên tục chưa được xác minh trên hệ thống này.</string>
+    <string name="background_access_already_title">Truy cập ghi hình nền</string>
+    <string name="background_access_already_message">Tối ưu pin Android đã bị tắt cho máy ghi này. Ghi hình có thể tiếp tục khi giao diện xe không mở. Force-stop của Android vẫn dừng mọi ứng dụng và không thể vượt qua.</string>
 
     <!-- Settings fields -->
-    <string name="setting_recording_volume">Recording volume</string>
-    <string name="setting_date_format">Date and time format</string>
-    <string name="section_camera_names">Camera names</string>
+    <string name="setting_recording_volume">Ổ lưu trữ ghi hình</string>
+    <string name="setting_date_format">Định dạng ngày giờ</string>
+    <string name="section_camera_names">Tên camera</string>
     <string name="camera_number">Camera %d</string>
-    <string name="section_camera_orientation">Camera orientation</string>
-    <string name="orientation_help">Enable either direction for each camera. Existing recordings are unchanged.</string>
-    <string name="section_fisheye_crop">Fisheye edge crop</string>
-    <string name="fisheye_help">0%% keeps the full lens. Drag the slider to preview one crop for all cameras.</string>
-    <string name="section_combined_layout">Combined video layout</string>
-    <string name="combined_layout_help">Drag a named camera tile onto another corner to swap them.</string>
-    <string name="setting_quota">Recorder quota</string>
-    <string name="setting_retention">Retention</string>
-    <string name="setting_segment">Segment length</string>
-    <string name="setting_min_free">Minimum volume free</string>
-    <string name="retention_days">%d days</string>
-    <string name="retention_day">%d day</string>
-    <string name="segment_minutes">%d min</string>
+    <string name="section_camera_orientation">Hướng camera</string>
+    <string name="orientation_help">Bật hướng ngang/dọc cho từng camera. Các bản ghi cũ không thay đổi.</string>
+    <string name="section_fisheye_crop">Cắt mép ống kính mắt cá</string>
+    <string name="fisheye_help">0%% giữ nguyên toàn bộ ống kính. Kéo thanh trượt để xem trước mức cắt cho tất cả camera.</string>
+    <string name="section_combined_layout">Bố cục video ghép</string>
+    <string name="combined_layout_help">Kéo ô camera sang góc khác để đổi vị trí.</string>
+    <string name="setting_quota">Hạn mức máy ghi</string>
+    <string name="setting_retention">Thời gian lưu trữ</string>
+    <string name="setting_segment">Độ dài đoạn ghi</string>
+    <string name="setting_min_free">Dung lượng trống tối thiểu</string>
+    <string name="retention_days">%d ngày</string>
+    <string name="retention_day">%d ngày</string>
+    <string name="segment_minutes">%d phút</string>
 
     <!-- Parking guard -->
-    <string name="section_parking_guard">Parking guard settings</string>
-    <string name="parking_guard_description">Automatically starts recording when an impact is detected. While on standby, continuous short clips are recorded so footage before an impact is also saved. Lower threshold means smaller impacts trigger recording.</string>
-    <string name="setting_impact_threshold">Impact threshold</string>
-    <string name="setting_recording_duration">Recording duration</string>
-    <string name="setting_post_impact_duration">Post-impact recording time</string>
-    <string name="setting_parking_auto_lock">Auto-lock event segments</string>
-    <string name="parking_auto_lock_label">Auto-lock enabled</string>
-    <string name="help_parking_auto_lock">Automatically locks the captured event segment and the pre-impact buffer so they are protected from automatic cleanup.</string>
-    <string name="setting_camera_motion_enabled">Camera motion detection</string>
-    <string name="camera_motion_enabled_label">Motion detection enabled</string>
-    <string name="setting_camera_motion_sensitivity">Motion sensitivity (1=sensitive, 5=low)</string>
-    <string name="help_camera_motion">Triggers recording when movement is detected in the camera image. Uses frame-by-frame comparison while in parking standby. Sensitivity 1 detects small movements; 5 requires large changes. May trigger on lighting changes.</string>
-    <string name="duration_seconds">%d sec</string>
+    <string name="section_parking_guard">Cài đặt giám sát đỗ xe</string>
+    <string name="parking_guard_description">Tự động bắt đầu ghi khi phát hiện va chạm. Khi chờ, vẫn ghi các đoạn ngắn liên tục để lưu cả hình trước va chạm. Ngưỡng thấp hơn sẽ nhạy hơn với va chạm nhỏ.</string>
+    <string name="setting_impact_threshold">Ngưỡng va chạm</string>
+    <string name="setting_recording_duration">Thời lượng ghi</string>
+    <string name="setting_post_impact_duration">Thời gian ghi sau va chạm</string>
+    <string name="setting_parking_auto_lock">Tự khóa đoạn sự kiện</string>
+    <string name="parking_auto_lock_label">Bật tự khóa</string>
+    <string name="help_parking_auto_lock">Tự động khóa đoạn sự kiện và bộ đệm trước va chạm để bảo vệ khỏi xóa tự động.</string>
+    <string name="setting_camera_motion_enabled">Phát hiện chuyển động camera</string>
+    <string name="camera_motion_enabled_label">Bật phát hiện chuyển động</string>
+    <string name="setting_camera_motion_sensitivity">Độ nhạy chuyển động (1=nhạy, 5=thấp)</string>
+    <string name="help_camera_motion">Kích hoạt ghi khi phát hiện chuyển động trong hình ảnh camera. So sánh từng khung hình khi đang chờ giám sát đỗ xe. Độ nhạy 1 phát hiện chuyển động nhỏ; 5 chỉ phản ứng với thay đổi lớn. Có thể kích hoạt do thay đổi ánh sáng.</string>
+    <string name="duration_seconds">%d giây</string>
 
     <!-- Notifications -->
-    <string name="notif_recording">Recording</string>
-    <string name="notif_parking_standby">Parking guard — standby</string>
-    <string name="notif_parking_recording">Parking guard — event recording</string>
-    <string name="notif_phone_available">Phone connection available</string>
+    <string name="notif_recording">Đang ghi hình</string>
+    <string name="notif_parking_standby">Giám sát đỗ xe — đang chờ</string>
+    <string name="notif_parking_recording">Giám sát đỗ xe — đang ghi sự kiện</string>
+    <string name="notif_phone_available">Có thể kết nối điện thoại</string>
 
     <!-- Telegram -->
-    <string name="section_telegram">Telegram notifications</string>
-    <string name="telegram_description">Receive Telegram messages for impact detection and parking guard events. Set Bot Token and Chat ID.</string>
-    <string name="setting_notifications_enabled">Notifications enabled</string>
-    <string name="telegram_enabled_label">Telegram notifications enabled</string>
+    <string name="section_telegram">Thông báo Telegram</string>
+    <string name="telegram_description">Nhận tin nhắn Telegram khi phát hiện va chạm và sự kiện giám sát đỗ xe. Nhập Bot Token và Chat ID.</string>
+    <string name="setting_notifications_enabled">Bật thông báo</string>
+    <string name="telegram_enabled_label">Bật thông báo Telegram</string>
 
     <!-- MQTT -->
     <string name="section_mqtt">MQTT (Home Assistant)</string>
-    <string name="mqtt_description">Publishes GPS, battery status, etc. to an MQTT broker. Supports Home Assistant MQTT Discovery.</string>
-    <string name="setting_mqtt_enabled">MQTT enabled</string>
-    <string name="mqtt_enabled_label">MQTT enabled</string>
-    <string name="setting_broker_address">Broker address</string>
-    <string name="setting_port">Port</string>
-    <string name="setting_username">Username</string>
-    <string name="setting_password">Password</string>
-    <string name="setting_topic_prefix">Topic prefix</string>
-    <string name="hint_optional">(optional)</string>
+    <string name="mqtt_description">Gửi GPS, trạng thái pin… lên MQTT broker. Hỗ trợ MQTT Discovery của Home Assistant.</string>
+    <string name="setting_mqtt_enabled">Bật MQTT</string>
+    <string name="mqtt_enabled_label">Bật MQTT</string>
+    <string name="setting_broker_address">Địa chỉ broker</string>
+    <string name="setting_port">Cổng</string>
+    <string name="setting_username">Tên đăng nhập</string>
+    <string name="setting_password">Mật khẩu</string>
+    <string name="setting_topic_prefix">Tiền tố topic</string>
+    <string name="hint_optional">(tùy chọn)</string>
 
     <!-- Cloudflare -->
-    <string name="section_cloudflare">External access (Cloudflare tunnel)</string>
-    <string name="cloudflare_description">Allows access to the phone app over the internet. Enabling it automatically downloads the cloudflared binary.</string>
-    <string name="setting_tunnel_enabled">Tunnel enabled</string>
-    <string name="cloudflare_enabled_label">Cloudflare tunnel enabled</string>
+    <string name="section_cloudflare">Truy cập ngoài (Cloudflare tunnel)</string>
+    <string name="cloudflare_description">Cho phép truy cập app điện thoại qua internet. Bật sẽ tự tải binary cloudflared.</string>
+    <string name="setting_tunnel_enabled">Bật tunnel</string>
+    <string name="cloudflare_enabled_label">Bật Cloudflare tunnel</string>
 
     <!-- Recordings -->
-    <string name="section_recordings">Recordings</string>
+    <string name="section_recordings">Bản ghi</string>
 
     <!-- Selection toolbar -->
-    <string name="select_all">Select all recordings</string>
-    <string name="clear_selection">Clear recording selection</string>
-    <string name="lock_selected">Lock selected recordings</string>
-    <string name="unlock_selected">Unlock selected recordings</string>
-    <string name="delete_selected">Delete selected recordings</string>
+    <string name="select_all">Chọn tất cả bản ghi</string>
+    <string name="clear_selection">Bỏ chọn bản ghi</string>
+    <string name="lock_selected">Khóa bản ghi đã chọn</string>
+    <string name="unlock_selected">Mở khóa bản ghi đã chọn</string>
+    <string name="delete_selected">Xóa bản ghi đã chọn</string>
 
     <!-- Confirmation dialogs -->
-    <string name="confirm_select_all_title">Select all recordings?</string>
-    <string name="confirm_select_all_message">This selects every finalized recording shown.</string>
-    <string name="confirm_clear_title">Clear selection?</string>
-    <string name="confirm_clear_message">No recordings will be changed.</string>
-    <string name="confirm_lock_title">Lock selected recordings?</string>
-    <string name="confirm_lock_message">Locked recordings are protected from automatic cleanup.</string>
-    <string name="confirm_unlock_title">Unlock selected recordings?</string>
-    <string name="confirm_unlock_message">Unlocked recordings can be deleted and may be removed by automatic cleanup.</string>
-    <string name="confirm_delete_title">Delete selected recordings?</string>
-    <string name="confirm_delete_message">This permanently deletes the selected finalized recordings.</string>
-    <string name="action_regenerate">Regenerate</string>
-    <string name="confirm_pin_title">Regenerate phone PIN?</string>
-    <string name="confirm_pin_message">Every connected phone will be signed out immediately and must enter the new PIN.</string>
-    <string name="unlock_before_delete_title">Unlock before deleting</string>
+    <string name="confirm_select_all_title">Chọn tất cả bản ghi?</string>
+    <string name="confirm_select_all_message">Sẽ chọn mọi bản ghi đã hoàn tất đang hiển thị.</string>
+    <string name="confirm_clear_title">Bỏ chọn?</string>
+    <string name="confirm_clear_message">Không có bản ghi nào bị thay đổi.</string>
+    <string name="confirm_lock_title">Khóa các bản ghi đã chọn?</string>
+    <string name="confirm_lock_message">Bản ghi bị khóa sẽ được bảo vệ khỏi xóa tự động.</string>
+    <string name="confirm_unlock_title">Mở khóa các bản ghi đã chọn?</string>
+    <string name="confirm_unlock_message">Bản ghi đã mở khóa có thể bị xóa và có thể bị dọn tự động.</string>
+    <string name="confirm_delete_title">Xóa các bản ghi đã chọn?</string>
+    <string name="confirm_delete_message">Sẽ xóa vĩnh viễn các bản ghi đã hoàn tất được chọn.</string>
+    <string name="action_regenerate">Tạo lại</string>
+    <string name="confirm_pin_title">Tạo lại PIN điện thoại?</string>
+    <string name="confirm_pin_message">Mọi điện thoại đang kết nối sẽ bị đăng xuất ngay và phải nhập PIN mới.</string>
+    <string name="unlock_before_delete_title">Mở khóa trước khi xóa</string>
 
     <!-- Segment states -->
-    <string name="segment_recording_now">recording now</string>
-    <string name="segment_finalizing">finalizing</string>
-    <string name="segment_incomplete">incomplete</string>
-    <string name="segment_unlocked">unlocked</string>
-    <string name="segment_locked_state">locked</string>
-    <string name="segment_locked_suffix"> — locked</string>
-    <string name="writing_files">Writing files</string>
-    <string name="recording_in_progress">Recording in progress\nPreviews and file actions unlock after finalization.</string>
-    <string name="finalizing_recording">Finalizing recording — the videos are being assembled and will be available shortly.</string>
-    <string name="interrupted_recording">Interrupted recording\nFiles were not finalized. Long-press to select and delete it, or keep it for recovery.</string>
+    <string name="segment_recording_now">đang ghi</string>
+    <string name="segment_finalizing">đang hoàn tất</string>
+    <string name="segment_incomplete">chưa hoàn tất</string>
+    <string name="segment_unlocked">đã mở khóa</string>
+    <string name="segment_locked_state">đã khóa</string>
+    <string name="segment_locked_suffix"> — đã khóa</string>
+    <string name="writing_files">Đang ghi file</string>
+    <string name="recording_in_progress">Đang ghi hình\nXem trước và thao tác file sẽ mở sau khi hoàn tất.</string>
+    <string name="finalizing_recording">Đang hoàn tất bản ghi — video đang được ghép và sẽ sẵn sàng sớm.</string>
+    <string name="interrupted_recording">Bản ghi bị gián đoạn\nFile chưa được hoàn tất. Nhấn giữ để chọn và xóa, hoặc giữ lại để khôi phục.</string>
 
     <!-- Segment card accessibility -->
-    <string name="segment_active_desc">Active recording %s</string>
-    <string name="segment_finalizing_desc">Finalizing recording %s</string>
-    <string name="segment_incomplete_desc">Interrupted recording %s</string>
-    <string name="segment_open_desc">Open recording %s</string>
+    <string name="segment_active_desc">Bản ghi đang chạy %s</string>
+    <string name="segment_finalizing_desc">Đang hoàn tất bản ghi %s</string>
+    <string name="segment_incomplete_desc">Bản ghi bị gián đoạn %s</string>
+    <string name="segment_open_desc">Mở bản ghi %s</string>
 
     <!-- Toast messages -->
-    <string name="msg_settings_updated_phone">Recorder settings updated from phone</string>
-    <string name="msg_service_disconnected">Recorder service disconnected</string>
-    <string name="msg_service_unavailable">Recorder service is unavailable</string>
-    <string name="msg_pin_regenerated">Phone PIN regenerated</string>
-    <string name="msg_recordings_locked">Selected recordings locked</string>
-    <string name="msg_recordings_unlocked">Selected recordings unlocked</string>
-    <string name="msg_recordings_deleted">Selected recordings deleted</string>
-    <string name="msg_active_cannot_select">The active recording cannot be selected</string>
-    <string name="msg_invalid_settings">Enter valid numeric storage settings</string>
-    <string name="msg_settings_saved">Recorder settings saved</string>
-    <string name="msg_camera_permission">Camera permissions are required</string>
+    <string name="msg_settings_updated_phone">Cài đặt máy ghi đã cập nhật từ điện thoại</string>
+    <string name="msg_service_disconnected">Dịch vụ ghi hình đã ngắt kết nối</string>
+    <string name="msg_service_unavailable">Dịch vụ ghi hình không khả dụng</string>
+    <string name="msg_pin_regenerated">Đã tạo lại PIN điện thoại</string>
+    <string name="msg_recordings_locked">Đã khóa các bản ghi đã chọn</string>
+    <string name="msg_recordings_unlocked">Đã mở khóa các bản ghi đã chọn</string>
+    <string name="msg_recordings_deleted">Đã xóa các bản ghi đã chọn</string>
+    <string name="msg_active_cannot_select">Không thể chọn bản ghi đang chạy</string>
+    <string name="msg_invalid_settings">Nhập số hợp lệ cho cài đặt bộ nhớ</string>
+    <string name="msg_settings_saved">Đã lưu cài đặt máy ghi</string>
+    <string name="msg_camera_permission">Cần quyền truy cập camera</string>
 
     <!-- Help texts -->
-    <string name="help_camera_names">Names identify the physical camera views in car and phone previews. New MP4 filenames use each valid custom name plus the segment ISO time; invalid filesystem names fall back to Camera-1 through Camera-4.</string>
-    <string name="help_recording_volume">Chooses where new recording folders are written. Existing recordings remain on their current volume.</string>
-    <string name="help_video_resolution">Controls detail and file size for all individual camera files and the combined file. Higher detail uses storage faster.</string>
-    <string name="help_date_format">Changes displayed recording dates. Folder names keep their filesystem-safe canonical format.</string>
-    <string name="help_quota">Maximum recorder space on the selected volume. Cleanup removes only unlocked recorder-owned recordings.</string>
-    <string name="help_retention">Unlocked recordings older than this many days may be removed automatically. Locked recordings stay protected.</string>
-    <string name="help_segment">How long each recording folder runs before a new segment starts. Shorter segments create more files.</string>
-    <string name="help_min_free">Recording stops before free space falls below this percentage, protecting the car and other apps from a full disk.</string>
-    <string name="help_camera_orientation">Flips a physical camera view horizontally, vertically, or in both directions. The saved orientation is applied consistently to live previews and new individual and combined recordings.</string>
-    <string name="help_fisheye_crop">Cuts one shared percentage from every edge of all four cameras, then expands each remaining center image to fill the frame. This reduces distorted low-information fisheye edges. The same transform is applied to previews and new individual and combined recordings.</string>
-    <string name="help_combined_layout">Sets which camera appears in each corner of newly created combined videos. Individual camera videos are never reordered.</string>
-    <string name="help_default">Controls this recorder setting.</string>
+    <string name="help_camera_names">Tên dùng để nhận diện góc camera trên xe và điện thoại. Tên file MP4 mới dùng tên tùy chỉnh hợp lệ + thời gian đoạn ghi; tên không hợp lệ sẽ dùng Camera-1 đến Camera-4.</string>
+    <string name="help_recording_volume">Chọn ổ lưu trữ để ghi các thư mục mới. Bản ghi cũ vẫn nằm trên ổ hiện tại của chúng.</string>
+    <string name="help_video_resolution">Điều khiển độ chi tiết và dung lượng file của từng camera và video ghép. Độ chi tiết cao hơn sẽ tốn dung lượng nhanh hơn.</string>
+    <string name="help_date_format">Thay đổi cách hiển thị ngày ghi. Tên thư mục vẫn giữ định dạng an toàn cho hệ thống file.</string>
+    <string name="help_quota">Dung lượng tối đa máy ghi được dùng trên ổ đã chọn. Dọn dẹp chỉ xóa bản ghi chưa khóa thuộc máy ghi.</string>
+    <string name="help_retention">Bản ghi chưa khóa cũ hơn số ngày này có thể bị xóa tự động. Bản ghi đã khóa luôn được bảo vệ.</string>
+    <string name="help_segment">Độ dài mỗi thư mục ghi trước khi bắt đầu đoạn mới. Đoạn ngắn hơn tạo nhiều file hơn.</string>
+    <string name="help_min_free">Ghi hình sẽ dừng trước khi dung lượng trống thấp hơn tỷ lệ này, bảo vệ hệ thống xe và ứng dụng khác khỏi đầy đĩa.</string>
+    <string name="help_camera_orientation">Lật ngang, dọc hoặc cả hai hướng của camera vật lý. Hướng đã lưu được áp dụng nhất quán cho xem trước trực tiếp và các bản ghi mới (riêng lẻ + ghép).</string>
+    <string name="help_fisheye_crop">Cắt cùng một tỷ lệ từ mọi cạnh của cả bốn camera, rồi phóng phần giữa còn lại cho đầy khung. Giảm mép méo của ống kính mắt cá. Áp dụng cho xem trước và bản ghi mới.</string>
+    <string name="help_combined_layout">Chọn camera nào xuất hiện ở mỗi góc của video ghép 2×2 mới tạo. Video từng camera riêng không bị sắp lại thứ tự.</string>
+    <string name="help_default">Điều khiển cài đặt máy ghi này.</string>
 
     <!-- GPS overlay -->
-    <string name="section_gps_overlay">GPS overlay</string>
-    <string name="setting_gps_overlay_enabled">Speed overlay</string>
-    <string name="gps_overlay_enabled_label">Show speed on video</string>
-    <string name="setting_gps_speed_unit">Speed unit</string>
-    <string name="setting_gps_show_coordinates">Show coordinates</string>
-    <string name="gps_show_coordinates_label">Show GPS coordinates</string>
-    <string name="setting_gps_track">Save GPS track</string>
-    <string name="gps_track_enabled_label">Save .gpx file per segment</string>
-    <string name="help_gps_overlay">Shows current speed and optionally GPS coordinates as an overlay on recorded video. Saving GPS track writes a .gpx file alongside each recording segment.</string>
+    <string name="section_gps_overlay">Lớp phủ GPS</string>
+    <string name="setting_gps_overlay_enabled">Lớp phủ tốc độ</string>
+    <string name="gps_overlay_enabled_label">Hiện tốc độ trên video</string>
+    <string name="setting_gps_speed_unit">Đơn vị tốc độ</string>
+    <string name="setting_gps_show_coordinates">Hiện tọa độ</string>
+    <string name="gps_show_coordinates_label">Hiện tọa độ GPS</string>
+    <string name="setting_gps_track">Lưu quỹ đạo GPS</string>
+    <string name="gps_track_enabled_label">Lưu file .gpx cho mỗi đoạn</string>
+    <string name="help_gps_overlay">Hiển thị tốc độ hiện tại và tùy chọn tọa độ GPS lên video đã ghi. Lưu quỹ đạo sẽ tạo file .gpx cạnh mỗi đoạn ghi.</string>
     <string name="gps_speed_kmh">km/h</string>
     <string name="gps_speed_mph">mph</string>
 
     <!-- Vehicle model -->
-    <string name="section_vehicle_model">Vehicle model</string>
-    <string name="setting_vehicle_model">Model</string>
-    <string name="help_vehicle_model">Select your BYD vehicle model. This controls camera IDs and resolution. Auto-detect reads Android device information at startup; override here if needed.</string>
+    <string name="section_vehicle_model">Mẫu xe</string>
+    <string name="setting_vehicle_model">Mẫu</string>
+    <string name="help_vehicle_model">Chọn mẫu xe BYD của bạn. Điều khiển ID camera và độ phân giải. Tự nhận diện đọc thông tin thiết bị Android lúc khởi động; có thể ghi đè tại đây nếu cần.</string>
 
     <!-- Phone access activity -->
-    <string name="phone_access_activity_title">Phone app access</string>
-    <string name="phone_access_requirement">The phone and car must be connected to the same Wi-Fi network.\nConnecting the car to your phone\'s shared hotspot also works.</string>
-    <string name="phone_access_scan">Scan to open on your phone</string>
-    <string name="phone_access_starting">Starting phone app access</string>
-    <string name="phone_access_pin_label">Phone PIN</string>
-    <string name="phone_access_link_copied">Phone app link copied</string>
-    <string name="clipboard_unavailable">Clipboard is unavailable</string>
+    <string name="phone_access_activity_title">Truy cập app điện thoại</string>
+    <string name="phone_access_requirement">Điện thoại và xe phải cùng một mạng Wi-Fi.\nKết nối xe với hotspot của điện thoại cũng được.</string>
+    <string name="phone_access_scan">Quét để mở trên điện thoại</string>
+    <string name="phone_access_starting">Đang khởi động truy cập app điện thoại</string>
+    <string name="phone_access_pin_label">PIN điện thoại</string>
+    <string name="phone_access_link_copied">Đã sao chép liên kết app điện thoại</string>
+    <string name="clipboard_unavailable">Không dùng được clipboard</string>
 </resources>

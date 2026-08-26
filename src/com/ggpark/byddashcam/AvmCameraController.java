@@ -17,7 +17,7 @@ public final class AvmCameraController implements FrameSource {
     private static final int MAXIMUM_REQUESTED_FPS = 30;
     private static final String TAG = "BYDCamera";
 
-    // 차량 모델별 설정: 앱 시작 시 VehicleProfileRegistry에서 결정됩니다.
+    // Cấu hình theo mẫu xe: quyết định bởi VehicleProfileRegistry lúc app khởi động.
     private final int cameraId;
     private final int viewIndex;
     private final int previewWidth;

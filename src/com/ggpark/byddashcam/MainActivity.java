@@ -1327,7 +1327,7 @@ public final class MainActivity extends Activity
                         getString(R.string.section_parking_guard),
                         getString(R.string.parking_guard_description)),
                 matchWidthWrap(dp(0), dp(8)));
-        // 임계값은 0.5G 단위, 1.5G~5.0G → 스텝 값 = G*10 (15~50, step 5)
+        // Ngưỡng theo bước 0.5G, 1.5G~5.0G → giá trị step = G*10 (15~50, step 5)
         parkingImpactStepper = numericStepper(
                 new NumericStepper.Specification(
                         "Impact threshold",
@@ -1402,7 +1402,7 @@ public final class MainActivity extends Activity
                         cameraMotionSensitivityStepper),
                 matchWidthWrap(dp(0), dp(10)));
 
-        // ── Telegram 알림 ──────────────────────────────────────────────
+        // ── Thông báo Telegram ──────────────────────────────────────────────
         fields.addView(
                 sectionTitleWithHelp(
                         getString(R.string.section_telegram),

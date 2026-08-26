@@ -6,9 +6,9 @@ import android.os.Looper;
 import android.util.Log;
 
 /**
- * 주차 감시 상태 머신.
- * STANDBY: ImpactDetector + CameraMotionDetector 활성화, 이벤트 대기.
- * RECORDING: 충격/모션 감지 후 recordingSeconds 동안 녹화.
+ * Máy trạng thái giám sát đỗ xe.
+ * STANDBY: bật ImpactDetector + CameraMotionDetector, chờ sự kiện.
+ * RECORDING: ghi trong recordingSeconds sau va chạm/chuyển động.
  *
  * 알림과 세그먼트 잠금은 Callback을 통해 CameraRecorderService가 처리합니다.
  */

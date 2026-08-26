@@ -1,9 +1,9 @@
-node_modules/
 build/
-mobile/build/
-mobile/.dart_tool/
 *.apk
-.DS_Store
-__pycache__/
-.idea/
-*.iml
+node_modules/
+phone-ui/node_modules/
+phone-ui/dist/
+assets/phone/
+.tools/
+*_build_secret/
+*.class

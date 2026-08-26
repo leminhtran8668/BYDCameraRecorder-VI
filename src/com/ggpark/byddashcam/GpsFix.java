@@ -1,8 +1,8 @@
 package com.ggpark.byddashcam;
 
-/** GPS 위치 데이터 스냅샷. 불변 객체. */
+/** Snapshot dữ liệu vị trí GPS. Đối tượng bất biến. */
 public final class GpsFix {
-    /** GPS 신호 없음을 나타내는 sentinel 값 */
+    /** Giá trị sentinel khi không có tín hiệu GPS */
     public static final GpsFix UNAVAILABLE =
             new GpsFix(0.0, 0.0, 0.0, 0.0, 0L, false);
 
@@ -10,7 +10,7 @@ public final class GpsFix {
     public final double latitude;
     public final double longitude;
     public final double altitude;
-    /** fix 시각 (System.currentTimeMillis 기준) */
+    /** Thời điểm fix (theo System.currentTimeMillis) */
     public final long fixTimeMs;
     /** fix 나이가 5초 이내이면 true */
     public final boolean fresh;

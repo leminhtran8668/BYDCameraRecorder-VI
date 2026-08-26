@@ -1,8 +1,8 @@
 package com.ggpark.byddashcam;
 
 /**
- * BYD Atto 3 카메라 프로파일.
- * 참조 앱(GHDanielG)에서 검증된 값 기반.
+ * Hồ sơ camera BYD Atto 3.
+ * Dựa trên giá trị đã kiểm chứng từ app tham chiếu (GHDanielG).
  */
 public final class Atto3Profile implements VehicleProfile {
     public static final String MODEL_ID = "atto3";

@@ -12,8 +12,8 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * 세그먼트별 GPX 궤적 파일 저장기.
- * 세그먼트 시작 시 open(), 매 GPS fix마다 offerFix(), 종료 시 close().
+ * Bộ lưu file quỹ đạo GPX theo từng đoạn.
+ * open() khi bắt đầu đoạn, offerFix() mỗi fix GPS, close() khi kết thúc.
  */
 public final class GpxTrackWriter {
     private static final String TAG = "BYDCamera";
@@ -31,12 +31,12 @@ public final class GpxTrackWriter {
         iso8601.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    /** 세그먼트 디렉토리에 gps.gpx를 생성하고 헤더를 씁니다. */
+    /** Tạo gps.gpx trong thư mục đoạn và ghi header. */
     public void open(File segmentDirectory) throws IOException {
         File gpxFile = new File(segmentDirectory, GPX_FILE);
         writer = new BufferedWriter(new FileWriter(gpxFile));
         writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-        writer.write("<gpx version=\"1.1\" creator=\"BYD블랙박스\"\n");
+        writer.write("<gpx version=\"1.1\" creator=\"BYD Camera\"\n");
         writer.write("  xmlns=\"http://www.topografix.com/GPX/1/1\"\n");
         writer.write("  xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n");
         writer.write("  <trk><trkseg>\n");

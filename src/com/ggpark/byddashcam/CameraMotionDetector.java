@@ -1,23 +1,23 @@
 package com.ggpark.byddashcam;
 
 /**
- * 연속 카메라 프레임 간 픽셀 차이를 이용한 모션 감지기.
+ * Bộ phát hiện chuyển động dựa trên chênh lệch pixel giữa các khung hình liên tiếp.
  *
- * NV21(YUV420sp) 포맷에서 Y(밝기) 채널만 사용합니다.
- * 16×16 블록으로 다운샘플링하여 CPU 부하를 최소화합니다.
+ * Chỉ dùng kênh Y (độ sáng) trong định dạng NV21 (YUV420sp).
+ * Giảm tải CPU bằng cách down-sample theo khối 16×16.
  *
  * sensitivity 1~5:
- *   1 = 가장 민감 (작은 움직임도 감지)
- *   5 = 가장 둔감 (큰 움직임만 감지)
+ *   1 = nhạy nhất (phát hiện cả chuyển động nhỏ)
+ *   5 = kém nhạy nhất (chỉ phát hiện chuyển động lớn)
  */
 public final class CameraMotionDetector {
 
-    // 다운샘플링 블록 크기 (픽셀)
+    // Kích thước khối down-sample (pixel)
     private static final int BLOCK_SIZE = 16;
-    // Y 채널 픽셀 차이 임계값 (0~255)
+    // Ngưỡng chênh lệch pixel kênh Y (0~255)
     private static final int PIXEL_DIFF_THRESHOLD = 20;
 
-    // sensitivity별 모션 블록 비율 임계값
+    // Ngưỡng tỷ lệ khối chuyển động theo sensitivity
     // sensitivity 1: 0.5%, 5: 6.0%
     private static final float[] MOTION_RATIO_BY_SENSITIVITY = {
         0.005f,  // 1 (very sensitive)
@@ -38,18 +38,18 @@ public final class CameraMotionDetector {
     }
 
     /**
-     * 프레임을 제출하여 모션 감지를 수행합니다.
+     * Gửi khung hình để phát hiện chuyển động.
      *
-     * @param data   NV21 포맷 프레임 데이터
-     * @param width  프레임 가로 픽셀
-     * @param height 프레임 세로 픽셀
-     * @return 모션이 감지되면 true, 최초 프레임이거나 기준 미달이면 false
+     * @param data   Dữ liệu khung định dạng NV21
+     * @param width  Chiều ngang khung (pixel)
+     * @param height Chiều dọc khung (pixel)
+     * @return true nếu phát hiện chuyển động; false nếu khung đầu hoặc dưới ngưỡng
      */
     public boolean detect(byte[] data, int width, int height) {
         if (data == null || data.length < width * height) {
             return false;
         }
-        // Y 채널(NV21의 첫 width*height 바이트)만 다운샘플링
+        // Chỉ down-sample kênh Y (width*height byte đầu của NV21)
         int sw = (width + BLOCK_SIZE - 1) / BLOCK_SIZE;
         int sh = (height + BLOCK_SIZE - 1) / BLOCK_SIZE;
         byte[] sampled = new byte[sw * sh];
@@ -94,7 +94,7 @@ public final class CameraMotionDetector {
         return changedBlocks > sampled.length * motionRatioThreshold;
     }
 
-    /** 이전 프레임 버퍼를 초기화합니다 (모드 전환 시 호출). */
+    /** Khởi tạo lại buffer khung trước (gọi khi đổi chế độ). */
     public void reset() {
         previousSampled = null;
     }

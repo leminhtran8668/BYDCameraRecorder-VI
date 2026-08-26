@@ -1,9 +1,9 @@
 package com.ggpark.byddashcam;
 
 /**
- * 범용 AVMCamera 프로파일 (폴백).
- * 자동 감지에 실패했거나 사용자가 "알 수 없는 모델"을 선택했을 때 사용.
- * Atto 3와 동일한 기본값이지만 별도 ID로 관리해 수동 선택을 표시할 수 있음.
+ * Hồ sơ AVMCamera dùng chung (dự phòng).
+ * Dùng khi tự nhận diện thất bại hoặc người dùng chọn "Mẫu không xác định".
+ * Cùng mặc định với Atto 3 nhưng ID riêng để hiện lựa chọn thủ công.
  */
 public final class GenericAvmProfile implements VehicleProfile {
     public static final String MODEL_ID = "generic";
@@ -39,7 +39,7 @@ public final class GenericAvmProfile implements VehicleProfile {
 
     @Override
     public String displayName() {
-        return "알 수 없는 모델 (범용)";
+        return "Mẫu không xác định (dùng chung)";
     }
 
     @Override

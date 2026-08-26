@@ -16,13 +16,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Cloudflare Quick Tunnel을 통해 로컬 PhoneAccessServer를 외부에서 접근 가능하게 만듭니다.
+ * Cho phép truy cập PhoneAccessServer cục bộ từ bên ngoài qua Cloudflare Quick Tunnel.
  *
- * 첫 실행 시 GitHub Releases에서 cloudflared ARM64 바이너리를 자동 다운로드합니다.
- * 실행 중에는 stdout/stderr에서 터널 URL을 파싱하여 리스너로 콜백합니다.
+ * Lần chạy đầu tự tải nhị phân cloudflared ARM64 từ GitHub Releases.
+ * Trong khi chạy, phân tích URL tunnel từ stdout/stderr và gọi callback listener.
  *
- * 지원: Quick Tunnel (--url 플래그, 인증 불필요)
- * 미지원: Named Tunnel (계정 필요), TLS 설정
+ * Hỗ trợ: Quick Tunnel (cờ --url, không cần xác thực)
+ * Không hỗ trợ: Named Tunnel (cần tài khoản), cấu hình TLS
  */
 public final class CloudflaredTunnel {
     private static final String TAG = "BYDCamera";
@@ -100,7 +100,7 @@ public final class CloudflaredTunnel {
         if (l != null) l.onTunnelStopped();
     }
 
-    // ── 터널 실행 루프 ─────────────────────────────────────────────────
+    // ── Vòng chạy tunnel ─────────────────────────────────────────────────
 
     private void runTunnel() {
         try {
@@ -159,7 +159,7 @@ public final class CloudflaredTunnel {
         }
     }
 
-    // ── 바이너리 다운로드 ──────────────────────────────────────────────
+    // ── Tải nhị phân ──────────────────────────────────────────────
 
     private void downloadBinary(File destination) throws IOException, InterruptedException {
         File tmp = new File(destination.getParent(), BINARY_NAME + ".tmp");
@@ -209,7 +209,7 @@ public final class CloudflaredTunnel {
         return new File(context.getFilesDir(), BINARY_NAME);
     }
 
-    /** 캐시된 바이너리를 삭제합니다 (업데이트 강제 시 사용). */
+    /** Xóa nhị phân đã cache (dùng khi buộc cập nhật). */
     public void deleteCachedBinary() {
         File binary = getBinaryFile();
         if (binary.exists()) {

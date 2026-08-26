@@ -20,7 +20,7 @@ public final class SegmentRecorder {
         void onRecorderState(String state);
     }
 
-    private static final int FRAME_RATE = 30;
+    private static final int FRAME_RATE = 25;
     // Worst-case footage loss on a process kill is one open chunk, so this
     // is the crash-loss bound. Five seconds keeps file counts and stitch
     // overhead trivial while losing almost nothing on a crash.
@@ -92,8 +92,8 @@ public final class SegmentRecorder {
     }
 
     /**
-     * 주차 대기 모드에서 짧은 세그먼트로 프리버퍼 녹화를 시작합니다.
-     * 충격 감지 시 직전 세그먼트를 이벤트 영상으로 보존할 수 있습니다.
+     * Bắt đầu ghi đệm trước bằng đoạn ngắn ở chế độ chờ đỗ xe.
+     * Khi phát hiện va chạm có thể giữ đoạn ngay trước làm video sự kiện.
      */
     public void startPreBuffer(RecorderSettings requestedSettings, int segmentSeconds) throws IOException {
         if (started) {
@@ -108,7 +108,7 @@ public final class SegmentRecorder {
     }
 
     /**
-     * 프리버퍼 모드를 해제하고 보존된 디렉토리 목록을 반환합니다.
+     * Tắt chế độ đệm trước và trả về danh sách thư mục đã giữ.
      * 반환된 디렉토리는 이벤트 세그먼트와 함께 잠금 처리해야 합니다.
      */
     public List<File> getAndClearPreBufferDirs() {

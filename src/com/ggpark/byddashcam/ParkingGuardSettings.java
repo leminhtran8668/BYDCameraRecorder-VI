@@ -1,7 +1,7 @@
 package com.ggpark.byddashcam;
 
 /**
- * 주차 감시 모드 설정 컨테이너 (immutable).
+ * Container cài đặt chế độ giám sát đỗ xe (immutable).
  */
 public final class ParkingGuardSettings {
     public static final float DEFAULT_IMPACT_THRESHOLD_G = 2.5f;

@@ -1,10 +1,9 @@
-name: Build Release
+name: Build & Release
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,7 +16,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ── phone-ui (web UI nhúng trong app xe) ─────────────────────────────
+      # ── phone-ui (차량 앱 내장 웹 UI) ──────────────────────────────────
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -28,58 +27,69 @@ jobs:
       - name: Build phone-ui
         run: npm --prefix phone-ui ci && npm --prefix phone-ui run build
 
-      # ── APK app trên xe (Android) ────────────────────────────────────────
+      # ── 차량용 Android APK ─────────────────────────────────────────────
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build car APK (debug)
-        run: bash build.sh
+      - name: Build car APK
+        run: ./build.sh
         env:
           BYD_CAMERA_SIGNING_MODE: debug
 
       - name: Rename car APK
-        run: |
-          mkdir -p dist
-          cp build/byd-dashcam-debug.apk "dist/BYD-Camera-Car-${{ github.ref_name }}.apk" || \
-          cp build/byd-dashcam.apk "dist/BYD-Camera-Car-${{ github.ref_name }}.apk"
+        run: cp build/byd-dashcam-debug.apk build/BYD-BlackBox-Car-${{ github.ref_name }}.apk
 
-      # ── App điện thoại Flutter ──────────────────────────────────────────
+      # ── Release signing (optional) ──────────────────────────────────────
+      # To enable release signing:
+      # 1. Generate: keytool -genkeypair -keystore byd-camera-release.jks \
+      #              -alias byd-camera-release -keyalg RSA -validity 10000
+      # 2. Add GitHub Secrets:
+      #      RELEASE_KEYSTORE_BASE64  (base64 -i byd-camera-release.jks)
+      #      RELEASE_KEYSTORE_PASSWORD
+      # 3. Uncomment steps below, comment out the debug build above.
+      #
+      # - name: Prepare release keystore
+      #   run: |
+      #     mkdir -p ${GITHUB_WORKSPACE}_build_secret
+      #     echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d \
+      #       > ${GITHUB_WORKSPACE}_build_secret/byd-camera-release.jks
+      #     echo "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" \
+      #       > ${GITHUB_WORKSPACE}_build_secret/byd-camera-release.password
+      # - name: Build car APK (release-signed)
+      #   run: ./build.sh
+      #   env:
+      #     BYD_CAMERA_SIGNING_MODE: release
+      #     BYD_CAMERA_RELEASE_SIGNING_DIR: ${{ github.workspace }}_build_secret
+      # - name: Rename car APK
+      #   run: cp build/byd-dashcam.apk build/BYD-BlackBox-Car-${{ github.ref_name }}.apk
+
+      # ── 폰앱 Flutter Android APK ───────────────────────────────────────
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          cache: true
 
       - name: Flutter dependencies
         run: flutter pub get
         working-directory: mobile
 
       - name: Build phone app APK
-        run: flutter build apk --release
+        run: flutter build apk --debug
         working-directory: mobile
 
-      - name: Copy phone APK
-        run: |
-          cp mobile/build/app/outputs/flutter-apk/app-release.apk \
-            "dist/BYD-Camera-Phone-${{ github.ref_name }}.apk" || \
-          cp mobile/build/app/outputs/flutter-apk/app-debug.apk \
-            "dist/BYD-Camera-Phone-${{ github.ref_name }}.apk"
+      - name: Rename phone APK
+        run: cp mobile/build/app/outputs/flutter-apk/app-debug.apk build/BYD-BlackBox-Phone-${{ github.ref_name }}.apk
 
-      # ── Upload artifacts ────────────────────────────────────────────────
-      - name: Upload APKs
-        uses: actions/upload-artifact@v4
-        with:
-          name: byd-camera-apks
-          path: dist/*.apk
-
+      # ── GitHub Release ─────────────────────────────────────────────────
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*.apk
-          generate_release_notes: true
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --generate-notes \
+            --title "${{ github.ref_name }}" \
+            "build/BYD-BlackBox-Car-${{ github.ref_name }}.apk" \
+            "build/BYD-BlackBox-Phone-${{ github.ref_name }}.apk"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -46,8 +46,8 @@ public final class CameraRecorderService extends Service
     public enum Mode {
         NOT_RECORDING,
         RECORDING,
-        PARKING_STANDBY,    // 주차 감시 대기 중 (충격 감지 대기)
-        PARKING_RECORDING   // 충격 감지 후 녹화 중
+        PARKING_STANDBY,    // Chế độ đỗ xe - đang chờ (chờ phát hiện va chạm)
+        PARKING_RECORDING   // Đang ghi sau khi phát hiện va chạm
     }
 
     public interface UiListener {
@@ -72,20 +72,20 @@ public final class CameraRecorderService extends Service
     // Quality 75 halves the bytes per frame versus 90 with little visible
     // difference on a phone screen, doubling the deliverable frame rate on
     // the car's Wi-Fi link.
-    private static final int PHONE_PREVIEW_JPEG_QUALITY = 75;
+    private static final int PHONE_PREVIEW_JPEG_QUALITY = 50;
     private static final long PREVIEW_RETRY_INTERVAL_NANOS =
             1_000_000_000L;
     private static final long RECORD_INTERVAL_NANOS = 0L;
     private static final long PERFORMANCE_LOG_INTERVAL_NANOS =
             5_000_000_000L;
-    // 주차 대기 중 프리버퍼 세그먼트 길이 (초)
+    // Độ dài đoạn đệm trước khi đỗ xe (giây)
     private static final int PRE_BUFFER_SECONDS = 12;
     private static final long INITIAL_RECOVERY_DELAY_MILLIS = 15_000L;
-    // 자동 주차 모드 전환
+    // Tự động chuyển chế độ đỗ xe
     private static final String KEY_AUTO_MODE_SWITCH = "auto_mode_switch_enabled";
     private static final double AUTO_PARK_SPEED_THRESHOLD_KMH = 5.0;
-    private static final long AUTO_PARK_DELAY_MS = 30_000L;  // 30초 정지 후 주차 감시 진입
-    private static final long AUTO_RESUME_DELAY_MS = 3_000L; // 3초 후 주행 복귀 확정
+    private static final long AUTO_PARK_DELAY_MS = 30_000L;  // Sau 30 giây dừng thì vào giám sát đỗ xe
+    private static final long AUTO_RESUME_DELAY_MS = 3_000L; // Xác nhận quay lại lái sau 3 giây
     private static final long RECOVERY_INTERVAL_MILLIS = 60_000L;
     private static final long FIRST_RECORDING_FRAME_TIMEOUT_MILLIS = 20_000L;
     private static final String TAG = "BYDCamera";
@@ -189,7 +189,7 @@ public final class CameraRecorderService extends Service
     private GpsOverlayRenderer gpsOverlayRenderer;
     private VehicleDataProvider vehicleDataProvider;
     private ParkingGuardController parkingGuardController;
-    // 자동 주차/주행 모드 전환용
+    // Dùng cho chuyển chế độ đỗ xe/lái tự động
     private volatile double lastSpeedKmh = -1.0;
     private volatile boolean lastSpeedFromGps = false;
     private final Runnable autoParkRunnable = new Runnable() {
@@ -691,7 +691,7 @@ public final class CameraRecorderService extends Service
                                 || rawFrame.monotonicNanos
                                         - lastRecordedFrameNanos
                                         >= RECORD_INTERVAL_NANOS);
-        // 주차 감시 대기 중에는 카메라를 열어 둬야 합니다 (충격 감지 후 즉시 녹화를 위해).
+        // Trong chế độ chờ đỗ xe phải giữ camera mở (để ghi ngay sau va chạm).
         boolean keepCameraOpen = currentMode == Mode.PARKING_STANDBY
                 || currentMode == Mode.PARKING_RECORDING;
         if (!previewRequested && !recordingFrameDue && !nativeCarPreviewPossible
@@ -772,7 +772,7 @@ public final class CameraRecorderService extends Service
                         recordingStartedNanos,
                         System.nanoTime());
             }
-            // PARKING_STANDBY 중 카메라 모션 감지 (rawFrame의 Y채널 직접 사용)
+            // Phát hiện chuyển động camera khi PARKING_STANDBY (dùng trực tiếp kênh Y của rawFrame)
             if (currentMode == Mode.PARKING_STANDBY && parkingGuardController != null) {
                 parkingGuardController.offerCameraFrame(
                         rawFrame.data, rawFrame.width, rawFrame.height);
@@ -903,9 +903,9 @@ public final class CameraRecorderService extends Service
             public void onTunnelUrl(String url) {
                 Log.i(TAG, "Cloudflare tunnel URL: " + url);
                 if (telegramNotifier != null) {
-                    telegramNotifier.send("외부 접속 URL: " + url);
+                    telegramNotifier.send("URL truy cập ngoài: " + url);
                 }
-                publishState("터널: " + url);
+                publishState("Tunnel: " + url);
             }
 
             @Override
@@ -1014,9 +1014,9 @@ public final class CameraRecorderService extends Service
     }
 
     /**
-     * 속도가 업데이트될 때마다 호출됩니다.
-     * 녹화 중 → 정지 30초 → 주차 감시 자동 진입
-     * 주차 감시 중 → 주행 감지 → 즉시 녹화 복귀
+     * Được gọi mỗi khi tốc độ cập nhật.
+     * Đang ghi → dừng 30 giây → tự vào giám sát đỗ xe
+     * Đang giám sát đỗ xe → phát hiện lái → quay lại ghi ngay
      */
     private void onSpeedUpdated(double speedKmh) {
         lastSpeedKmh = speedKmh;
@@ -1026,18 +1026,18 @@ public final class CameraRecorderService extends Service
         Mode currentMode = mode;
         if (currentMode == Mode.RECORDING) {
             if (speedKmh <= AUTO_PARK_SPEED_THRESHOLD_KMH) {
-                // 정지 상태: 딜레이 후 주차 감시 진입
+                // Đang dừng: sau delay vào giám sát đỗ xe
                 if (!mainHandler.hasCallbacks(autoParkRunnable)) {
                     mainHandler.postDelayed(autoParkRunnable, AUTO_PARK_DELAY_MS);
                 }
             } else {
-                // 주행 중: 주차 예약 취소
+                // Đang lái: hủy lịch đỗ xe
                 mainHandler.removeCallbacks(autoParkRunnable);
             }
         } else if (currentMode == Mode.PARKING_STANDBY
                 || currentMode == Mode.PARKING_RECORDING) {
             if (speedKmh > AUTO_PARK_SPEED_THRESHOLD_KMH) {
-                // 주행 감지: 딜레이 후 녹화 복귀 (순간 속도 오탐 방지)
+                // Phát hiện lái: sau delay quay lại ghi (tránh báo giả tốc độ tức thời)
                 mainHandler.removeCallbacks(autoParkRunnable);
                 if (!mainHandler.hasCallbacks(autoResumeRunnable)) {
                     mainHandler.postDelayed(autoResumeRunnable, AUTO_RESUME_DELAY_MS);
@@ -1056,7 +1056,7 @@ public final class CameraRecorderService extends Service
             return;
         }
         if (lastSpeedKmh > AUTO_PARK_SPEED_THRESHOLD_KMH) {
-            return; // 속도가 다시 올라간 경우 취소
+            return; // Hủy nếu tốc độ tăng lại
         }
         Log.i(TAG, "Auto-switching to parking mode (speed=" + lastSpeedKmh + " km/h)");
         enterParkingMode();
@@ -1067,7 +1067,7 @@ public final class CameraRecorderService extends Service
             return;
         }
         if (lastSpeedKmh <= AUTO_PARK_SPEED_THRESHOLD_KMH) {
-            return; // 다시 정지한 경우 취소
+            return; // Hủy nếu dừng lại
         }
         Log.i(TAG, "Auto-resuming recording (speed=" + lastSpeedKmh + " km/h)");
         exitParkingMode();
@@ -1081,28 +1081,28 @@ public final class CameraRecorderService extends Service
             renderer.updateTelemetry(telemetry);
         }
         segmentRecorder.updateTelemetry(telemetry);
-        // GPS가 없을 때만 텔레메트리 속도 사용 (GPS 우선)
+        // Chỉ dùng tốc độ telemetry khi không có GPS (ưu tiên GPS)
         if (!lastSpeedFromGps && telemetry != null && telemetry.isAvailable()) {
             onSpeedUpdated(telemetry.speedKmh);
         }
     }
 
-    /** 주차 감시 모드로 진입합니다. */
+    /** Vào chế độ giám sát đỗ xe. */
     public synchronized void enterParkingMode() {
         if (mode == Mode.PARKING_STANDBY || mode == Mode.PARKING_RECORDING) {
-            publishState("주차 감시 모드가 이미 활성화되어 있습니다");
+            publishState("Chế độ giám sát đỗ xe đã được bật");
             return;
         }
-        // 기존 일반 녹화 중이라면 중지합니다.
+        // Dừng ghi thường nếu đang chạy.
         if (mode == Mode.RECORDING) {
             pendingRecordingSettings = null;
             segmentRecorder.stop();
             releaseWakeLock();
         }
         RecorderSettings settings = RecorderSettings.load(this);
-        // continuousRecordingEnabled는 false 유지 (주차 모드는 별도 상태)
+        // Giữ continuousRecordingEnabled = false (chế độ đỗ xe là trạng thái riêng)
         settings.withContinuousRecordingEnabled(false).save(this);
-        // 카메라가 꺼져 있으면 시작합니다.
+        // Bật camera nếu đang tắt.
         if (!cameraSourceActive) {
             frameProcessor.configure(
                     settings.resolution,
@@ -1114,7 +1114,7 @@ public final class CameraRecorderService extends Service
             cameraSourceActive = true;
         }
         mode = Mode.PARKING_STANDBY;
-        // 프리버퍼 녹화 시작: 충격 발생 시 직전 영상도 보존하기 위해
+        // Bắt đầu ghi đệm trước: để giữ video ngay trước khi có va chạm
         RecorderSettings parkingRecordingSettings =
                 settings.withContinuousRecordingEnabled(false);
         lastRecordedFrameNanos = 0L;
@@ -1149,13 +1149,13 @@ public final class CameraRecorderService extends Service
         parkingGuardController.start(parkingSettings);
         acquireWakeLock();
         enterForeground();
-        publishState("주차 감시 시작 - 충격 감지 대기");
+        publishState("Bắt đầu giám sát đỗ xe - chờ phát hiện va chạm");
     }
 
     /** 주차 감시 모드를 해제합니다. */
     public synchronized void exitParkingMode() {
         if (mode != Mode.PARKING_STANDBY && mode != Mode.PARKING_RECORDING) {
-            publishState("주차 감시 모드가 활성화되어 있지 않습니다");
+            publishState("Chế độ giám sát đỗ xe chưa được bật");
             return;
         }
         if (parkingGuardController != null) {
@@ -1172,7 +1172,7 @@ public final class CameraRecorderService extends Service
         releaseWakeLock();
         stopForeground(true);
         applyPhoneAccessSetting(RecorderSettings.load(this));
-        publishState("주차 감시 종료");
+        publishState("Đã tắt giám sát đỗ xe");
     }
 
     private synchronized void handleImpactRecordingStarted(float gForce) {
@@ -1215,7 +1215,7 @@ public final class CameraRecorderService extends Service
         }
         enterForeground();
         sendImpactNotification(gForce);
-        String impactMsg = "⚠️ 충격 감지: " + String.format("%.1f", gForce) + "G - 주차 녹화 시작";
+        String impactMsg = "⚠️ Phát hiện va chạm: " + String.format("%.1f", gForce) + "G - bắt đầu ghi đỗ xe";
         if (telegramNotifier != null) {
             telegramNotifier.send(impactMsg);
         }
@@ -1226,7 +1226,7 @@ public final class CameraRecorderService extends Service
                     String.format("{\"gForce\":%.1f}", gForce));
             mqttPublisher.publish(prefix + "/state", "parking_recording");
         }
-        publishState("충격 감지: " + String.format("%.1f", gForce) + "G - 녹화 시작");
+        publishState("Phát hiện va chạm: " + String.format("%.1f", gForce) + "G - bắt đầu ghi");
     }
 
     private synchronized void handleMotionRecordingStarted() {
@@ -1267,7 +1267,7 @@ public final class CameraRecorderService extends Service
         }
         enterForeground();
         if (telegramNotifier != null) {
-            telegramNotifier.send("📹 모션 감지: 주차 녹화 시작");
+            telegramNotifier.send("📹 Phát hiện chuyển động: bắt đầu ghi đỗ xe");
         }
         if (mqttPublisher != null) {
             RecorderSettings s = RecorderSettings.load(this);
@@ -1275,7 +1275,7 @@ public final class CameraRecorderService extends Service
             mqttPublisher.publish(prefix + "/parking/motion", "{\"detected\":true}");
             mqttPublisher.publish(prefix + "/state", "parking_recording");
         }
-        publishState("모션 감지 - 주차 녹화 시작");
+        publishState("Phát hiện chuyển động - bắt đầu ghi đỗ xe");
     }
 
     private synchronized void handleImpactRecordingStopped() {
@@ -1300,7 +1300,7 @@ public final class CameraRecorderService extends Service
         }
         mode = Mode.PARKING_STANDBY;
         enterForeground();
-        publishState("주차 감시 녹화 완료 - 대기 중");
+        publishState("Hoàn tất ghi giám sát đỗ xe - đang chờ");
     }
 
     public synchronized String regeneratePhoneAccessPin() {
@@ -1807,7 +1807,7 @@ public final class CameraRecorderService extends Service
             // 주차 감시 채널 (IMPORTANCE_HIGH = 4)
             method.invoke(manager, constructor.newInstance(
                     PARKING_CHANNEL_ID,
-                    "주차 감시",
+                    "Giám sát đỗ xe",
                     4));
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Cannot create notification channel", exception);
@@ -1886,10 +1886,10 @@ public final class CameraRecorderService extends Service
             Notification.Builder builder = createParkingNotificationBuilder();
             Notification notification = builder
                     .setSmallIcon(R.drawable.ic_record)
-                    .setContentTitle("이벤트 녹화")
+                    .setContentTitle("Ghi sự kiện")
                     .setContentText(
                             String.format("%.1f", gForce)
-                                    + "G 충격 감지")
+                                    + "G phát hiện va chạm")
                     .setContentIntent(pendingIntent)
                     .setAutoCancel(true)
                     .setCategory(Notification.CATEGORY_EVENT)

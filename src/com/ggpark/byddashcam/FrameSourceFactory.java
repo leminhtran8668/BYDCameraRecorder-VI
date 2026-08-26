@@ -19,7 +19,7 @@ public final class FrameSourceFactory {
     }
 
     public static FrameSource create(Context context, FrameSource.Listener listener) {
-        // 차량 프로파일을 결정하고 FrameProcessor 상수를 초기화합니다.
+        // Quyết định hồ sơ xe và khởi tạo hằng FrameProcessor.
         VehicleProfileRegistry.detectAndActivate(context);
         if (shouldUseFixture(context)) {
             return new FixtureFrameSource(listener);

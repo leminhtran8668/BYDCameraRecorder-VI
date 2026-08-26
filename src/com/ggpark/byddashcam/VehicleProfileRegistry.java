@@ -9,13 +9,13 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * 차량 모델 프로파일 레지스트리.
+ * Registry hồ sơ mẫu xe.
  *
- * <p>우선순위:
+ * <p>Thứ tự ưu tiên:
  * <ol>
- *   <li>RecorderSettings에 저장된 사용자 수동 선택</li>
- *   <li>Build.DEVICE / Build.MODEL 키워드 자동 매핑</li>
- *   <li>폴백: Atto 3 (가장 많이 검증된 모델)</li>
+ *   <li>Lựa chọn thủ công của người dùng trong RecorderSettings</li>
+ *   <li>Ánh xạ tự động theo từ khóa Build.DEVICE / Build.MODEL</li>
+ *   <li>Dự phòng: Atto 3 (mẫu được kiểm chứng nhiều nhất)</li>
  * </ol>
  */
 public final class VehicleProfileRegistry {

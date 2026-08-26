@@ -1,17 +1,17 @@
 package com.ggpark.byddashcam;
 
 /**
- * 차량 모델별 AVMCamera 설정 프로파일.
- * 모델마다 다를 수 있는 카메라 ID, 뷰 인덱스, 해상도 등을 추상화합니다.
+ * Hồ sơ cấu hình AVMCamera theo mẫu xe.
+ * Trừu tượng hóa ID camera, view index, độ phân giải có thể khác theo mẫu.
  */
 public interface VehicleProfile {
-    /** 설정 저장에 사용하는 고유 식별자 (예: "atto3") */
+    /** Định danh duy nhất dùng lưu cài đặt (vd: "atto3") */
     String modelId();
 
-    /** UI에 표시할 모델명 (예: "BYD Atto 3") */
+    /** Tên mẫu hiển thị trên UI (vd: "BYD Atto 3") */
     String displayName();
 
-    /** AVMCamera.open()에 전달할 카메라 ID */
+    /** ID camera truyền vào AVMCamera.open() */
     int avmCameraId();
 
     /** enablePreviewCallback()에 전달할 뷰 인덱스 */

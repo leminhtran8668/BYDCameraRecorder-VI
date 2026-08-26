@@ -6,20 +6,21 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 
 public final class FrameProcessor {
-    // 이 상수들은 앱 시작 시 VehicleProfileRegistry.activate()를 통해 초기화됩니다.
-    // non-final로 선언되어 있지만 init() 이후에는 변경되지 않습니다.
+    // Các hằng số này được khởi tạo qua VehicleProfileRegistry.activate() khi app khởi động.
+    // Khai báo non-final nhưng không đổi sau init().
     public static int CAMERA_COUNT = 4;
     public static int SOURCE_CAMERA_HEIGHT = 960;
     public static int SOURCE_CAMERA_WIDTH = 1280;
     public static int SOURCE_HEIGHT = 960;
     public static int SOURCE_WIDTH = SOURCE_CAMERA_WIDTH * CAMERA_COUNT;
     public static final int VENDOR_NV21_FORMAT = 21;
-    public static int PREVIEW_CAMERA_HEIGHT = SOURCE_CAMERA_HEIGHT;
-    public static int PREVIEW_CAMERA_WIDTH = SOURCE_CAMERA_WIDTH;
+    // Car UI / bitmap preview at half source size to cut CPU & memory (~4x fewer pixels).
+    public static int PREVIEW_CAMERA_HEIGHT = 480;
+    public static int PREVIEW_CAMERA_WIDTH = 640;
 
     /**
-     * VehicleProfile 값으로 정적 상수를 초기화합니다.
-     * VehicleProfileRegistry.activate()에서 호출하며, 앱 생애주기에서 한 번만 실행합니다.
+     * Khởi tạo hằng số tĩnh từ giá trị VehicleProfile.
+     * Gọi từ VehicleProfileRegistry.activate(), chỉ chạy một lần trong vòng đời app.
      */
     public static void init(VehicleProfile profile) {
         CAMERA_COUNT = profile.cameraCount();
@@ -27,8 +28,9 @@ public final class FrameProcessor {
         SOURCE_CAMERA_HEIGHT = profile.sourceCameraHeight();
         SOURCE_WIDTH = profile.sourceCameraWidth() * profile.cameraCount();
         SOURCE_HEIGHT = profile.sourceCameraHeight();
-        PREVIEW_CAMERA_WIDTH = profile.sourceCameraWidth();
-        PREVIEW_CAMERA_HEIGHT = profile.sourceCameraHeight();
+        // Half-res preview keeps live view smooth on the head unit.
+        PREVIEW_CAMERA_WIDTH = Math.max(320, (profile.sourceCameraWidth() / 2) & ~1);
+        PREVIEW_CAMERA_HEIGHT = Math.max(240, (profile.sourceCameraHeight() / 2) & ~1);
     }
 
     public static final class ProcessedFrame {
@@ -106,7 +108,7 @@ public final class FrameProcessor {
     private byte[] combinedFrame;
     private int[] combinedLayout = new int[]{0, 1, 2, 3};
     private byte[] flipScratch;
-    private final int[][] previewPixels =
+    private int[][] previewPixels =
             new int[CAMERA_COUNT][
                     PREVIEW_CAMERA_WIDTH * PREVIEW_CAMERA_HEIGHT];
     private final ArrayDeque<Bitmap[]> previewBitmapPool =
@@ -228,7 +230,7 @@ public final class FrameProcessor {
                         0,
                         flipScratch.length);
             }
-            // GPS 오버레이 합성 (flip 이후 적용)
+            // Ghép lớp phủ GPS (áp dụng sau flip)
             if (gpsOverlayRenderer != null) {
                 gpsOverlayRenderer.applyToNv21(
                         cameraFrames[cameraIndex],
@@ -279,6 +281,7 @@ public final class FrameProcessor {
         int croppedWidth = SOURCE_CAMERA_WIDTH - cropX * 2;
         int croppedHeight = SOURCE_CAMERA_HEIGHT - cropY * 2;
         int sourceYSize = SOURCE_WIDTH * SOURCE_HEIGHT;
+        ensurePreviewPixelBuffers();
         Bitmap[] bitmaps =
                 previewBitmapPool.isEmpty()
                         ? createPreviewBitmapSet()
