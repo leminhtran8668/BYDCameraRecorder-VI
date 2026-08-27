@@ -1,0 +1,126 @@
+name: Build & Releases
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: 'Tạo GitHub Release sau khi build (chỉ nên dùng khi muốn phát hành)'
+        required: false
+        default: 'false'
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── phone-ui (xe app nội bộ web UI) ──────────────────────────────────
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: phone-ui/package-lock.json
+
+      - name: Build phone-ui
+        run: npm --prefix phone-ui ci && npm --prefix phone-ui run build
+
+      # ── APK xe Android ─────────────────────────────────────────────
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Build car APK
+        run: bash build.sh
+        env:
+          BYD_CAMERA_SIGNING_MODE: debug
+
+      - name: Determine version / artifact name
+        id: meta
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            VERSION="build-$(echo ${{ github.sha }} | cut -c1-7)"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Using version/artifact: $VERSION"
+
+      - name: Rename car APK
+        run: |
+          mkdir -p build
+          cp build/byd-dashcam-debug.apk "build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk"
+
+      # ── Release signing (optional) ──────────────────────────────────────
+      # To enable release signing:
+      # 1. Generate: keytool -genkeypair -keystore byd-camera-release.jks \
+      #              -alias byd-camera-release -keyalg RSA -validity 10000
+      # 2. Add GitHub Secrets:
+      #      RELEASE_KEYSTORE_BASE64  (base64 -i byd-camera-release.jks)
+      #      RELEASE_KEYSTORE_PASSWORD
+      # 3. Uncomment steps below, comment out the debug build above.
+      #
+      # - name: Prepare release keystore
+      #   run: |
+      #     mkdir -p ${GITHUB_WORKSPACE}_build_secret
+      #     echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d \
+      #       > ${GITHUB_WORKSPACE}_build_secret/byd-camera-release.jks
+      #     echo "${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" \
+      #       > ${GITHUB_WORKSPACE}_build_secret/byd-camera-release.password
+      # - name: Build car APK (release-signed)
+      #   run: bash build.sh
+      #   env:
+      #     BYD_CAMERA_SIGNING_MODE: release
+      #     BYD_CAMERA_RELEASE_SIGNING_DIR: ${{ github.workspace }}_build_secret
+      # - name: Rename car APK
+      #   run: cp build/byd-dashcam.apk build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk
+
+      # ── Phone app Flutter Android APK ───────────────────────────────────────
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Flutter dependencies
+        run: flutter pub get
+        working-directory: mobile
+
+      - name: Build phone app APK
+        run: flutter build apk --debug
+        working-directory: mobile
+
+      - name: Rename phone APK
+        run: cp mobile/build/app/outputs/flutter-apk/app-debug.apk "build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk"
+
+      # ── Upload artifacts (luôn có, dù không tạo release) ─────────────────
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: BYD-BlackBox-${{ steps.meta.outputs.version }}
+          path: |
+            build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk
+            build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk
+          retention-days: 14
+
+      # ── GitHub Release (chỉ khi push tag v* hoặc manual chọn create_release) ─
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release == true)
+        run: |
+          gh release create "${{ steps.meta.outputs.version }}" \
+            --generate-notes \
+            --title "${{ steps.meta.outputs.version }}" \
+            "build/BYD-BlackBox-Car-${{ steps.meta.outputs.version }}.apk" \
+            "build/BYD-BlackBox-Phone-${{ steps.meta.outputs.version }}.apk"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
